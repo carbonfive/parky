@@ -8,7 +8,7 @@ config = { :write => false }
 operations = %w(run start stop restart status)
 
 option_parser = OptionParser.new do |opts|
-  opts.banner = "Parky #{Parky:VERSION}, Carbon Five LA parking bot\nUsage: #{__FILE__} [command] [options]"
+  opts.banner = "Parky #{Parky::VERSION}, Carbon Five LA parking bot\nUsage: #{__FILE__} [command] [options]"
 
   opts.on("-v", "--verbose", "Be verbose") do
     config[:verbose] = true

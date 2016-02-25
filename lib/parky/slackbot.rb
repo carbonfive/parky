@@ -3,7 +3,7 @@ require 'set'
 
 module Parky
   class Slackbot
-    def initialize(config, travel_agent)
+    def initialize(config)
       @config = config
       @restarts = []
       @channels = Set.new
@@ -11,10 +11,14 @@ module Parky
       Slack.configure do |slack_cfg|
         slack_cfg.token = @config.slack_api_token
       end
-
     end
 
     def run
+      unless @config.slack_api_token
+        @config.log "No Slack API token found in parky.yml!"
+        return
+      end
+
       @webclient = Slack::Web::Client.new
       auth = @webclient.auth_test
       if auth['ok']

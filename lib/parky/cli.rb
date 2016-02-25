@@ -3,11 +3,10 @@ module Parky
   class CLI
     def initialize(opts)
       @options = { :verbose => false }.merge opts
-      check_options
-
-      slackbot = Slackbot.new(@config, @agent)
-      daemon = Daemon.new(@agent, slackbot)
-      @service = Service.new(@agent, daemon)
+      config = Config.new()
+      slackbot = Slackbot.new(config)
+      daemon = Daemon.new(config, slackbot)
+      @service = Service.new(config, daemon)
     end
 
     def run(params)
