@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+version=`ruby -r ./lib/parky/version.rb -e 'puts Parky::VERSION'`
+dest=$1
+ssh="ssh root@$dest"
+
+rake build
+scp pkg/parky-$version.gem root@$dest:
+$ssh "which parky && parky stop"
+$ssh "gem list | grep parky && gem uninstall parky"
+$ssh "gem install --no-ri --no-rdoc ./parky-$version.gem"
+$ssh "parky start"
+$ssh "rm -f ./parky-$version.gem"
