@@ -19,19 +19,21 @@ module Parky
         return
       end
 
-      @webclient = Slack::Web::Client.new
-      auth = @webclient.auth_test
+      client = Slack::RealTime::Client.new
+      @webclient = client.web_client
+      auth = client.web_client.auth_test
       if auth['ok']
-        puts "Slackbot is active!"
         @config.log "Slackbot is active!"
         @config.log "Accepting channels: #{@config.slack_accept_channels}" if @config.slack_accept_channels.length > 0
         @config.log "Ignoring channels: #{@config.slack_reject_channels}" if @config.slack_reject_channels.length > 0
       else
+        puts "Slackbot cannot authorize with Slack.  Boo :-("
         @config.log "Slackbot is doomed :-("
         return
       end
 
-      client = Slack::RealTime::Client.new
+      @config.users.populate client.web_client
+      puts "Slackbot is active!"
 
       client.on :message do |data|
         next if data['user'] == @config.slackbot_id # this is Mr. Parky!
@@ -44,12 +46,23 @@ module Parky
         next if @config.slack_reject_channels.index channel
         client.typing channel: channel
         @channels << channel
-        respond = Proc.new { |msg| client.message channel: channel, text: msg }
+        respond = Proc.new { |msg| client.message channel: channel, reply_to: data.id, text: msg }
         method = tokens[1]
         args = tokens[2..-1]
         method = "#{method}_all" if args == [ 'all' ]
         ( help(data, [], &respond) and next ) unless method
         send method, data, args, &respond
+      end
+
+      client.on :presence_change do |data|
+        next unless data['presence'] == 'active'
+        id   = data.user
+        info = @config.users.info id
+        if info
+          im = client.web_client.im_open user: info['id']
+          message = "Hi #{info.name}!  Did you :car: to work today?"
+          client.web_client.chat_postMessage channel: im['channel']['id'], text: message
+        end
       end
 
       client.start!

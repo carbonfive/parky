@@ -13,6 +13,10 @@ class Parky::Config
     load_config :force => true
   end
 
+  def users
+    @users || @users = Parky::Users.new()
+  end
+
   def slack_api_token
     @config[:slack_api_token]
   end
