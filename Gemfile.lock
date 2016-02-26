@@ -6,6 +6,8 @@ PATH
       faye-websocket
       slack-ruby-client
       sqlite3
+      tzinfo
+      tzinfo-data
 
 GEM
   remote: http://rubygems.org/
@@ -44,6 +46,8 @@ GEM
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
+    tzinfo-data (1.2016.1)
+      tzinfo (>= 1.0.0)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)

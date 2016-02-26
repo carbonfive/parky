@@ -1,5 +1,6 @@
 require 'slack-ruby-client'
 require 'set'
+require 'tzinfo'
 
 module Parky
   class Slackbot
@@ -64,6 +65,7 @@ module Parky
         end
 
         next unless data.channel == user.im_id
+        next if data.text =~ /^parky/
 
         respond = Proc.new { |msg| client.message channel: data.channel, reply_to: data.id, text: msg }
         if data.text == 'yes'
@@ -84,10 +86,18 @@ module Parky
         info = @config.users.info data.user
         next unless info
 
-        im = client.web_client.im_open user: info.id
-        message = "Hi #{info.name}!  Did you :car: to work today?"
-        client.web_client.chat_postMessage channel: im.channel.id, text: message
-        @config.save_dbuser Parky::User.new user_id: info.id, im_id: im.channel.id, last_ask: Time.now.to_i
+        user = @config.get_dbuser info.id
+        user = Parky::User.new user_id: info.id unless user
+
+        now = Time.now
+        if is_work_hours?(now) && ! user.has_been_asked_on?(now)
+          im = client.web_client.im_open user: info.id
+          message = "Hi #{info.name}!  Did you :car: to work today?"
+          client.web_client.chat_postMessage channel: im.channel.id, text: message
+          user.im_id = im.channel.id
+          user.last_ask = now.to_i
+          @config.save_dbuser user
+        end
       end
 
       client.start!
@@ -107,6 +117,13 @@ module Parky
       else
         run
       end
+    end
+
+    def is_work_hours?(time)
+      la = TZInfo::Timezone.get 'America/Los_Angeles'
+      la_time = la.utc_to_local time.getgm
+      return false if la_time.wday == 0 || la_time.wday == 6  # weekends
+      la_time.hour >= 7 && la_time.hour <= 17
     end
 
     def method_missing(name, *args)
