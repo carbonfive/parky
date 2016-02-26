@@ -49,6 +49,11 @@ module Parky
       @config.users.populate client.web_client
       puts "Slackbot is active!"
 
+      # in case Parky was down when the user came online
+      @config.users.all.each do |info|
+        ask client, info
+      end
+
       client.on :message do |data|
         next if data.user == @config.slackbot_id # this is Mr. Parky!
         next unless data.text
@@ -99,21 +104,7 @@ module Parky
         next unless data['presence'] == 'active'
         info = @config.users.info data.user
         next unless info
-
-        user = @config.get_dbuser info.id
-        user = Parky::User.new user_id: info.id unless user
-
-        now = Time.now
-        if is_work_hours?(now) && ! user.has_been_asked_on?(now)
-          im = client.web_client.im_open user: info.id
-          car = @car_emojis.sample
-          message = "Hi #{info.name}!  Did you #{car} to work today?"
-          client.web_client.chat_postMessage channel: im.channel.id, text: message
-          user.im_id = im.channel.id
-          user.last_ask = now.to_i
-          user.last_answer = nil
-          @config.save_dbuser user
-        end
+        ask client, info
       end
 
       client.start!
@@ -138,7 +129,24 @@ module Parky
     def is_work_hours?(time)
       la_time = @tz_la.utc_to_local time.getgm
       return false if la_time.wday == 0 || la_time.wday == 6  # weekends
-      la_time.hour >= 7 && la_time.hour <= 17
+      la_time.hour >= 8 && la_time.hour <= 17
+    end
+
+    def ask(client, info)
+      user = @config.get_dbuser info.id
+      user = Parky::User.new user_id: info.id unless user
+
+      now = Time.now
+      if is_work_hours?(now) && ! user.has_been_asked_on?(now)
+        im = client.web_client.im_open user: info.id
+        car = @car_emojis.sample
+        message = "Hi #{info.name}!  Did you #{car} to work today?"
+        client.web_client.chat_postMessage channel: im.channel.id, text: message
+        user.im_id = im.channel.id
+        user.last_ask = now.to_i
+        user.last_answer = nil
+        @config.save_dbuser user
+      end
     end
 
     def method_missing(name, *args)
