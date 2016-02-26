@@ -5,5 +5,6 @@ module Parky
   require 'parky/daemon'
   require 'parky/service'
   require 'parky/slackbot'
+  require 'parky/user'
   require 'parky/users'
 end

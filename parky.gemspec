@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency 'slack-ruby-client'
+  s.add_runtime_dependency 'sqlite3'
   s.add_runtime_dependency 'eventmachine'
   s.add_runtime_dependency 'faye-websocket'
 

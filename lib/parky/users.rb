@@ -22,6 +22,10 @@ class Parky::Users
     @users[id]
   end
 
+  def all
+    @users.values
+  end
+
   def name(id)
     return nil unless info(id)
     info(id)['name']

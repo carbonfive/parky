@@ -20,7 +20,6 @@ module Parky
       end
 
       client = Slack::RealTime::Client.new
-      @webclient = client.web_client
       auth = client.web_client.auth_test
       if auth['ok']
         @config.log "Slackbot is active!"
@@ -36,10 +35,10 @@ module Parky
       puts "Slackbot is active!"
 
       client.on :message do |data|
-        next if data['user'] == @config.slackbot_id # this is Mr. Parky!
-        next unless data['text']
-        tokens = data['text'].split ' '
-        channel = data['channel']
+        next if data.user == @config.slackbot_id # this is Mr. Parky!
+        next unless data.text
+        tokens = data.text.split ' '
+        channel = data.channel
         next unless tokens.length > 0
         next unless tokens[0].downcase == 'parky'
         next if @config.slack_accept_channels.length > 0 and ! @config.slack_accept_channels.index(channel)
@@ -49,20 +48,46 @@ module Parky
         respond = Proc.new { |msg| client.message channel: channel, reply_to: data.id, text: msg }
         method = tokens[1]
         args = tokens[2..-1]
-        method = "#{method}_all" if args == [ 'all' ]
         ( help(data, [], &respond) and next ) unless method
         send method, data, args, &respond
       end
 
+      client.on :message do |data|
+        next if data.user == @config.slackbot_id # this is Mr. Parky!
+        info = @config.users.info data.user
+        next unless info
+
+        user = @config.get_dbuser info.id
+        unless user
+          @config.log "Strange.  Can't find user: #{info.id}"
+          next
+        end
+
+        next unless data.channel == user.im_id
+
+        respond = Proc.new { |msg| client.message channel: data.channel, reply_to: data.id, text: msg }
+        if data.text == 'yes'
+          respond.call "Thanks!"
+          user.last_answer = data.text
+          @config.save_dbuser user
+        elsif data.text == 'no'
+          respond.call "Thanks!  I'll make sure folks know it's open today"
+          user.last_answer = data.text
+          @config.save_dbuser user
+        else
+          respond.call "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
+        end
+      end
+
       client.on :presence_change do |data|
         next unless data['presence'] == 'active'
-        id   = data.user
-        info = @config.users.info id
-        if info
-          im = client.web_client.im_open user: info['id']
-          message = "Hi #{info.name}!  Did you :car: to work today?"
-          client.web_client.chat_postMessage channel: im['channel']['id'], text: message
-        end
+        info = @config.users.info data.user
+        next unless info
+
+        im = client.web_client.im_open user: info.id
+        message = "Hi #{info.name}!  Did you :car: to work today?"
+        client.web_client.chat_postMessage channel: im.channel.id, text: message
+        @config.save_dbuser Parky::User.new user_id: info.id, im_id: im.channel.id, last_ask: Time.now.to_i
       end
 
       client.start!
@@ -89,20 +114,13 @@ module Parky
       @config.log args[0]
     end
 
-    def user_profile(data)
-      id = data['user']
-      res = @webclient.users_info user: id
-      return {} unless res['ok']
-      profile = res['user']['profile']
-      { id: id, first_name: profile['first_name'], last_name: profile['last_name'], email: profile['email'] }
-    end
-
     def help(data, args, &respond)
       respond.call "Hello, I am Parky.  I can do the following things:"
       respond.call <<EOM
 ```
 parky help              Show this message
 parky hello             Say hello to me!
+parky whatsup           Tell me what parking spots are available today
 ```
 EOM
     end
@@ -115,15 +133,30 @@ EOM
     end
 
     def hello(data, args, &respond)
-      profile = user_profile data
-      respond.call "Hello #{profile[:first_name]}!  You are all set to use Parky."
-      respond.call "I think this is you:"
-      respond.call <<EOM
+      info = @config.users.info data.user
+      if info
+        user = @config.get_dbuser info.id
+        respond.call "Hello #{info.name}!  You are all set to use Parky."
+        respond.call "I think this is you:"
+        respond.call <<EOM
 ```
-name:  #{profile[:first_name]} #{profile[:last_name]}
-email: #{profile[:email]}
+name:          #{info.profile.first_name} #{info.profile.last_name}
+email:         #{info.profile.email}
+parking today: #{user.last_answer}
 ```
 EOM
+      end
+    end
+
+    def whatsup(data, args, &respond)
+      response = '```'
+      @config.users.all.each do |user|
+        dbuser = @config.get_dbuser user.id
+        status = dbuser ? dbuser.last_answer : 'unknown'
+        response += "#{user.name}: #{status}\n"
+      end
+      response += '```'
+      respond.call response
     end
   end
 end
