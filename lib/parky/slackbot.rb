@@ -8,6 +8,20 @@ module Parky
       @config = config
       @restarts = []
       @channels = Set.new
+      @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
+      @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:' ]
+      @yes = [
+        "Got it.  I'll make sure no one parks on top of your car.",
+        "Great!  I'll tell Al Gore you don't care about global warming.",
+        "Good thinking.  Walking and biking are for losers anyway.",
+        "I thought so.  I heard people screaming in fear as you were driving up."
+      ]
+      @no = [
+        "Really?  Well you still have to pay for the spot, sucker!",
+        "Nice.  Finally getting off your ass and walking for a change, eh?",
+        "Hmmm... Police scanner is saying a car just got stolen in your neighborhood.  Probably yours.",
+        "Oh, did your drivers license finally get revoked from all those DUIs?"
+      ]
 
       Slack.configure do |slack_cfg|
         slack_cfg.token = @config.slack_api_token
@@ -69,11 +83,11 @@ module Parky
 
         respond = Proc.new { |msg| client.message channel: data.channel, reply_to: data.id, text: msg }
         if data.text == 'yes'
-          respond.call "Thanks!"
+          respond.call( rand(30) == 0 ? @yes.sample : "Ok thanks!" )
           user.last_answer = data.text
           @config.save_dbuser user
         elsif data.text == 'no'
-          respond.call "Thanks!  I'll make sure folks know it's open today"
+          respond.call( rand(30) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
           user.last_answer = data.text
           @config.save_dbuser user
         else
@@ -92,10 +106,12 @@ module Parky
         now = Time.now
         if is_work_hours?(now) && ! user.has_been_asked_on?(now)
           im = client.web_client.im_open user: info.id
-          message = "Hi #{info.name}!  Did you :car: to work today?"
+          car = @car_emojis.sample
+          message = "Hi #{info.name}!  Did you #{car} to work today?"
           client.web_client.chat_postMessage channel: im.channel.id, text: message
           user.im_id = im.channel.id
           user.last_ask = now.to_i
+          user.last_answer = nil
           @config.save_dbuser user
         end
       end
@@ -120,8 +136,7 @@ module Parky
     end
 
     def is_work_hours?(time)
-      la = TZInfo::Timezone.get 'America/Los_Angeles'
-      la_time = la.utc_to_local time.getgm
+      la_time = @tz_la.utc_to_local time.getgm
       return false if la_time.wday == 0 || la_time.wday == 6  # weekends
       la_time.hour >= 7 && la_time.hour <= 17
     end
@@ -153,27 +168,46 @@ EOM
       info = @config.users.info data.user
       if info
         user = @config.get_dbuser info.id
+        la_now = @tz_la.utc_to_local Time.now
         respond.call "Hello #{info.name}!  You are all set to use Parky."
-        respond.call "I think this is you:"
+        respond.call "Here is what I currently know about you:"
         respond.call <<EOM
 ```
-name:          #{info.profile.first_name} #{info.profile.last_name}
-email:         #{info.profile.email}
-parking today: #{user.last_answer}
+today        : #{la_now.strftime '%F'}
+name         : #{info.profile.first_name} #{info.profile.last_name}
+email        : #{info.profile.email}
+parking spot : #{user.parking_spot_status}
 ```
 EOM
       end
     end
 
     def whatsup(data, args, &respond)
+      la_now = @tz_la.utc_to_local Time.now
       response = '```'
+      response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
+      statuses = {}
+      n = @config.users.names.max_by { |name| name.length }.length
       @config.users.all.each do |user|
         dbuser = @config.get_dbuser user.id
-        status = dbuser ? dbuser.last_answer : 'unknown'
-        response += "#{user.name}: #{status}\n"
+        statuses[user.name] = dbuser.parking_spot_status
+      end
+      statuses = statuses.sort_by { |tuple| "#{tuple[1]}-#{tuple[0]}" }
+      statuses.each do |tuple|
+        response += sprintf("%-#{n}s : %s", tuple[0], tuple[1]) + "\n"
       end
       response += '```'
       respond.call response
+    end
+
+    def reset(data, args, &respond)
+      user = @config.get_dbuser data.user
+      if user
+        user.last_ask = nil
+        user.last_answer = nil
+        @config.save_dbuser user
+        hello data, args, &respond
+      end
     end
   end
 end

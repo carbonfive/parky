@@ -18,4 +18,9 @@ class Parky::User
     la_last_ask = la.utc_to_local Time.at(@last_ask)
     la_time.strftime('%F') == la_last_ask.strftime('%F')
   end
+
+  def parking_spot_status
+    return 'unknown' unless @last_answer
+    @last_answer == 'yes' ? 'in use' : 'available'
+  end
 end

@@ -1,4 +1,6 @@
 class Parky::Users
+  attr_reader :names
+
   def initialize
     @names = [ 'mike' ]
     @users = { }
