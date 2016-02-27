@@ -1,8 +1,7 @@
 class Parky::Daemon
 
-  def initialize(config, slackbot)
+  def initialize(config)
     @config = config
-    @slackbot = slackbot
     @active = true
     @running = false
   end
@@ -19,8 +18,9 @@ class Parky::Daemon
     end
 
     begin
-      @slackthread = Thread.new { @slackbot.run }
-      run
+      slackbot = Parky::Slackbot.new @config
+      @slackthread = Thread.new { slackbot.run }
+      run slackbot
     rescue => e
       @config.log "Unexpected error", e
     ensure
@@ -34,11 +34,11 @@ class Parky::Daemon
 
   private
 
-  def run
+  def run(slackbot)
     @config.log "Parky is running."
     while active? do
       time = Time.now
-      @slackbot.ask_all if time.min % 10 == 0  # every 10 minutes
+      slackbot.ask_all if time.min % 10 == 0  # every 10 minutes
       sleep 0.5
     end
     @config.log "Parky got killed"

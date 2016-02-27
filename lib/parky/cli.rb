@@ -4,8 +4,7 @@ module Parky
     def initialize(opts)
       @options = { :verbose => false }.merge opts
       config = Config.new()
-      slackbot = Slackbot.new(config)
-      daemon = Daemon.new(config, slackbot)
+      daemon = Daemon.new(config)
       @service = Service.new(config, daemon)
     end
 
