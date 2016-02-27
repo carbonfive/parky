@@ -183,6 +183,9 @@ email        : #{user.profile.email}
 parking spot : #{user.dbuser.parking_spot_status}
 ```
 EOM
+      else
+        respond.call "Hello non-parking-spot-haver #{data.user}!"
+        respond.call "You don't park in any of my spots, so clearly you're dead to me"
       end
     end
 
