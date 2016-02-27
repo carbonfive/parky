@@ -10,7 +10,6 @@ class Parky::Users
     @client = client
     print "Gather information about all the parking spot holders "
     @names.each do |name|
-      @config.log "Looking up user: @#{name}"
       info = @client.users_info user: "@#{name}"
       unless info.ok
         puts "Uh oh: #{info}"
