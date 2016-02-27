@@ -2,7 +2,7 @@ class Parky::Users
   attr_reader :names
 
   def initialize
-    @names = [ 'mike' ]
+    @names = [ 'mike', 'rudy', 'rob' ]
     @users = { }
   end
 
@@ -10,6 +10,7 @@ class Parky::Users
     @client = client
     print "Gather information about all the parking spot holders "
     @names.each do |name|
+      @config.log "Looking up user: @#{name}"
       info = @client.users_info user: "@#{name}"
       unless info.ok
         puts "Uh oh: #{info}"
