@@ -37,6 +37,8 @@ class Parky::Daemon
   def run
     @config.log "Parky is running."
     while active? do
+      time = Time.now
+      @slackbot.ask_all if time.min % 10 == 0  # every 10 minutes
       sleep 0.5
     end
     @config.log "Parky got killed"

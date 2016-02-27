@@ -26,6 +26,8 @@ module Parky
       Slack.configure do |slack_cfg|
         slack_cfg.token = @config.slack_api_token
       end
+
+      @client = Slack::RealTime::Client.new
     end
 
     def run
@@ -34,8 +36,7 @@ module Parky
         return
       end
 
-      client = Slack::RealTime::Client.new
-      auth = client.web_client.auth_test
+      auth = @client.web_client.auth_test
       if auth['ok']
         @config.log "Slackbot is active!"
         @config.log "Accepting channels: #{@config.slack_accept_channels}" if @config.slack_accept_channels.length > 0
@@ -46,15 +47,13 @@ module Parky
         return
       end
 
-      @config.users.populate client.web_client
+      @config.users.populate @client.web_client
       puts "Slackbot is active!"
 
       # in case Parky was down when the user came online
-      @config.users.all.each do |info|
-        ask client, info
-      end
+      ask_all
 
-      client.on :message do |data|
+      @client.on :message do |data|
         next if data.user == @config.slackbot_id # this is Mr. Parky!
         next unless data.text
         tokens = data.text.split ' '
@@ -63,16 +62,16 @@ module Parky
         next unless tokens[0].downcase == 'parky'
         next if @config.slack_accept_channels.length > 0 and ! @config.slack_accept_channels.index(channel)
         next if @config.slack_reject_channels.index channel
-        client.typing channel: channel
+        @client.typing channel: channel
         @channels << channel
-        respond = Proc.new { |msg| client.message channel: channel, reply_to: data.id, text: msg }
+        respond = Proc.new { |msg| @client.message channel: channel, reply_to: data.id, text: msg }
         method = tokens[1]
         args = tokens[2..-1]
         ( help(data, [], &respond) and next ) unless method
         send method, data, args, &respond
       end
 
-      client.on :message do |data|
+      @client.on :message do |data|
         next if data.user == @config.slackbot_id # this is Mr. Parky!
         info = @config.users.info data.user
         next unless info
@@ -86,7 +85,7 @@ module Parky
         next unless data.channel == user.im_id
         next if data.text =~ /^parky/
 
-        respond = Proc.new { |msg| client.message channel: data.channel, reply_to: data.id, text: msg }
+        respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
         if data.text == 'yes'
           respond.call( rand(30) == 0 ? @yes.sample : "Ok thanks!" )
           user.last_answer = data.text
@@ -100,27 +99,27 @@ module Parky
         end
       end
 
-      client.on :presence_change do |data|
+      @client.on :presence_change do |data|
         next unless data['presence'] == 'active'
         info = @config.users.info data.user
         next unless info
-        ask client, info
+        ask info
       end
 
-      client.start!
+      @client.start!
     rescue => e
       @config.log "An error ocurring inside the Slackbot", e
       @restarts << Time.new
       @restarts.shift while (@restarts.length > 3)
       if @restarts.length == 3 and ( Time.new - @restarts.first < 30 )
         @config.log "Too many errors.  Not restarting anymore."
-        client.on :hello do
+        @client.on :hello do
           @channels.each do |channel|
-            client.message channel: channel, text: "Oh no... I have died!  Please make me live again @mike"
+            @client.message channel: channel, text: "Oh no... I have died!  Please make me live again @mike"
           end
-          client.stop!
+          @client.stop!
         end
-        client.start!
+        @client.start!
       else
         run
       end
@@ -132,16 +131,23 @@ module Parky
       la_time.hour >= 8 && la_time.hour <= 17
     end
 
-    def ask(client, info)
+    def ask_all
+      @config.users.refresh
+      @config.users.all.each do |info|
+        ask info if info['presence'] == 'active'
+      end
+    end
+
+    def ask(info)
       user = @config.get_dbuser info.id
       user = Parky::User.new user_id: info.id unless user
 
       now = Time.now
       if is_work_hours?(now) && ! user.has_been_asked_on?(now)
-        im = client.web_client.im_open user: info.id
+        im = @client.web_client.im_open user: info.id
         car = @car_emojis.sample
         message = "Hi #{info.name}!  Did you #{car} to work today?"
-        client.web_client.chat_postMessage channel: im.channel.id, text: message
+        @client.web_client.chat_postMessage channel: im.channel.id, text: message
         user.im_id = im.channel.id
         user.last_ask = now.to_i
         user.last_answer = nil
