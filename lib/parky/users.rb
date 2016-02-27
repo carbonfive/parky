@@ -30,6 +30,10 @@ class Parky::Users
     presence = @client.users_getPresence user: user.id
     user.presence = presence['presence']
     user.dbuser = Parky::User.find user.id
+    if ! user.dbuser.has_been_asked_on? Time.now
+      user.dbuser.reset
+      user.dbuser.save
+    end
   end
 
   def refresh

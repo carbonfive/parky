@@ -201,8 +201,7 @@ EOM
     def reset(data, args, &respond)
       user = @users.find data.user
       if user
-        user.dbuser.last_ask = nil
-        user.dbuser.last_answer = nil
+        user.dbuser.reset
         user.dbuser.save
         hello data, args, &respond
       end

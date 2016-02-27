@@ -30,6 +30,11 @@ class Parky::User
                   values (?, ?, ?, ?)", [ @user_id, @im_id, @last_ask, @last_answer ]
   end
 
+  def reset
+    @last_ask = nil
+    @last_answer = nil
+  end
+
   def has_been_asked_on?(time)
     return false unless @last_ask
 
