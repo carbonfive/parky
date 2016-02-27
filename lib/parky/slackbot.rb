@@ -77,16 +77,16 @@ module Parky
         user = @users.find data.user
         next unless user
 
-        next unless data.channel == user.im_id
+        next unless data.channel == user.dbuser.im_id
         next if data.text =~ /^parky/
 
         respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
         if data.text == 'yes'
-          respond.call( rand(30) == 0 ? @yes.sample : "Ok thanks!" )
+          respond.call( rand(20) == 0 ? @yes.sample : "Ok thanks!" )
           user.dbuser.last_answer = data.text
           user.dbuser.save
         elsif data.text == 'no'
-          respond.call( rand(30) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
+          respond.call( rand(20) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
           user.dbuser.last_answer = data.text
           user.dbuser.save
         else
@@ -120,12 +120,6 @@ module Parky
       end
     end
 
-    def is_work_hours?(time)
-      la_time = @tz_la.utc_to_local time.getgm
-      return false if la_time.wday == 0 || la_time.wday == 6  # weekends
-      la_time.hour >= 8 && la_time.hour <= 17
-    end
-
     def ask_all
       @users.refresh
       @users.all.each do |user|
@@ -135,7 +129,7 @@ module Parky
 
     def ask(user)
       now = Time.now
-      if is_work_hours?(now) && ! user.dbuser.has_been_asked_on?(now)
+      if user.dbuser.should_ask_at?(now)
         im = @client.web_client.im_open user: user.id
         car = @car_emojis.sample
         message = "Hi #{user.name}!  Did you #{car} to work today?"

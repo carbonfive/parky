@@ -20,6 +20,8 @@ class Parky::User
     @im_id       = attrs[:im_id]
     @last_ask    = attrs[:last_ask]
     @last_answer = attrs[:last_answer]
+
+    @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
   end
 
   def save
@@ -31,10 +33,19 @@ class Parky::User
   def has_been_asked_on?(time)
     return false unless @last_ask
 
-    la = TZInfo::Timezone.get 'America/Los_Angeles'
-    la_time = la.utc_to_local time.getgm
-    la_last_ask = la.utc_to_local Time.at(@last_ask)
+    la_time = @tz_la.utc_to_local time.getgm
+    la_last_ask = @tz_la.utc_to_local Time.at(@last_ask)
     la_time.strftime('%F') == la_last_ask.strftime('%F')
+  end
+
+  def should_ask_at?(time)
+    is_work_hours?(time) && ! has_been_asked_on?(time)
+  end
+
+  def is_work_hours?(time)
+    la_time = @tz_la.utc_to_local time.getgm
+    return false if la_time.wday == 0 || la_time.wday == 6  # weekends
+    la_time.hour >= 8 && la_time.hour <= 17
   end
 
   def parking_spot_status
