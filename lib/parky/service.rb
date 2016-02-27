@@ -48,8 +48,8 @@ class Parky::Service
   end
 
   def restart
-    start
     stop
+    start
   end
 
   def status
