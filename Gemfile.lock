@@ -4,7 +4,7 @@ PATH
     parky (1.0)
       eventmachine
       faye-websocket
-      slack-ruby-client
+      slack-ruby-client (>= 0.6)
       sqlite3
       tzinfo
       tzinfo-data

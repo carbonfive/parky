@@ -47,7 +47,7 @@ module Parky
         return
       end
 
-      @config.users.populate @client.web_client
+      @config.users.populate @client.web_client, @config
       puts "Slackbot is active!"
 
       # in case Parky was down when the user came online
