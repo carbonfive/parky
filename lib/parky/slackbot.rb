@@ -6,7 +6,6 @@ module Parky
   class Slackbot
     def initialize(config)
       @config = config
-      @users = Parky::Users.new config
       @restarts = []
       @channels = Set.new
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
@@ -29,6 +28,7 @@ module Parky
       end
 
       @client = Slack::RealTime::Client.new
+      @users = Parky::Users.new @config, @client.web_client
     end
 
     def run
@@ -48,7 +48,7 @@ module Parky
         return
       end
 
-      @users.populate @client.web_client
+      @users.populate
       puts "Slackbot is active!"
 
       # in case Parky was down when the user came online
@@ -74,14 +74,8 @@ module Parky
 
       @client.on :message do |data|
         next if data.user == @config.slackbot_id # this is Mr. Parky!
-        info = @users.info data.user
-        next unless info
-
-        user = @config.get_dbuser info.id
-        unless user
-          @config.log "Strange.  Can't find user: #{info.id}"
-          next
-        end
+        user = @users.find data.user
+        next unless user
 
         next unless data.channel == user.im_id
         next if data.text =~ /^parky/
@@ -89,12 +83,12 @@ module Parky
         respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
         if data.text == 'yes'
           respond.call( rand(30) == 0 ? @yes.sample : "Ok thanks!" )
-          user.last_answer = data.text
-          @config.save_dbuser user
+          user.dbuser.last_answer = data.text
+          user.dbuser.save
         elsif data.text == 'no'
           respond.call( rand(30) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
-          user.last_answer = data.text
-          @config.save_dbuser user
+          user.dbuser.last_answer = data.text
+          user.dbuser.save
         else
           respond.call "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
         end
@@ -102,9 +96,9 @@ module Parky
 
       @client.on :presence_change do |data|
         next unless data['presence'] == 'active'
-        info = @users.info data.user
-        next unless info
-        ask info
+        user = @users.find data.user
+        next unless user
+        ask user
       end
 
       @client.start!
@@ -134,25 +128,22 @@ module Parky
 
     def ask_all
       @users.refresh
-      @users.all.each do |info|
-        ask info if info['presence'] == 'active'
+      @users.all.each do |user|
+        ask user if user['presence'] == 'active'
       end
     end
 
-    def ask(info)
-      user = @config.get_dbuser info.id
-      user = Parky::User.new user_id: info.id unless user
-
+    def ask(user)
       now = Time.now
-      if is_work_hours?(now) && ! user.has_been_asked_on?(now)
-        im = @client.web_client.im_open user: info.id
+      if is_work_hours?(now) && ! user.dbuser.has_been_asked_on?(now)
+        im = @client.web_client.im_open user: user.id
         car = @car_emojis.sample
-        message = "Hi #{info.name}!  Did you #{car} to work today?"
+        message = "Hi #{user.name}!  Did you #{car} to work today?"
         @client.web_client.chat_postMessage channel: im.channel.id, text: message
-        user.im_id = im.channel.id
-        user.last_ask = now.to_i
-        user.last_answer = nil
-        @config.save_dbuser user
+        user.dbuser.im_id = im.channel.id
+        user.dbuser.last_ask = now.to_i
+        user.dbuser.last_answer = nil
+        user.dbuser.save
       end
     end
 
@@ -180,18 +171,17 @@ EOM
     end
 
     def hello(data, args, &respond)
-      info = @users.info data.user
-      if info
-        user = @config.get_dbuser info.id
+      user = @users.find data.user
+      if user
         la_now = @tz_la.utc_to_local Time.now
-        respond.call "Hello #{info.name}!  You are all set to use Parky."
+        respond.call "Hello #{user.name}!  You are all set to use Parky."
         respond.call "Here is what I currently know about you:"
         respond.call <<EOM
 ```
 today        : #{la_now.strftime '%F'}
-name         : #{info.profile.first_name} #{info.profile.last_name}
-email        : #{info.profile.email}
-parking spot : #{user.parking_spot_status}
+name         : #{user.profile.first_name} #{user.profile.last_name}
+email        : #{user.profile.email}
+parking spot : #{user.dbuser.parking_spot_status}
 ```
 EOM
       end
@@ -204,8 +194,7 @@ EOM
       statuses = {}
       n = @users.names.max_by { |name| name.length }.length
       @users.all.each do |user|
-        dbuser = @config.get_dbuser user.id
-        statuses[user.name] = dbuser.parking_spot_status
+        statuses[user.name] = user.dbuser.parking_spot_status
       end
       statuses = statuses.sort_by { |tuple| "#{tuple[1]}-#{tuple[0]}" }
       statuses.each do |tuple|
@@ -216,11 +205,11 @@ EOM
     end
 
     def reset(data, args, &respond)
-      user = @config.get_dbuser data.user
+      user = @users.find data.user
       if user
-        user.last_ask = nil
-        user.last_answer = nil
-        @config.save_dbuser user
+        user.dbuser.last_ask = nil
+        user.dbuser.last_answer = nil
+        user.dbuser.save
         hello data, args, &respond
       end
     end

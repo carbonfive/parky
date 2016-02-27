@@ -1,38 +1,42 @@
 class Parky::Users
   attr_reader :names
 
-  def initialize(config)
+  def initialize(config, client)
     @config = config
+    @client = client
     @names = [ 'mike', 'rudy', 'rob' ]
     @users = { }
   end
 
-  def populate(client)
-    @client = client
+  def populate
     print "Gather information about all the parking spot holders "
     @names.each do |name|
       @config.log "Looking up user: @#{name}"
-      info = @client.users_info user: "@#{name}"
-      unless info.ok
+      resp = @client.users_info user: "@#{name}"
+      unless resp.ok
         puts "Uh oh: #{info}"
         return
       end
-      user = @config.get_dbuser info.user.id
-      @config.save_dbuser Parky::User.new user_id: info.user.id unless user
-      @users[info.user.id] = info.user
+      user = resp.user
+      Parky::User.new(user_id: user.id).save unless Parky::User.find user.id
+      refresh_one user
+      @users[user.id] = user
       print '.'
     end
     puts ' done'
   end
 
-  def refresh
-    @users.each do |id, info|
-      presence = @client.users_getPresence user: id
-      info.presence = presence['presence']
-    end
+  def refresh_one(user)
+    presence = @client.users_getPresence user: user.id
+    user.presence = presence['presence']
+    user.dbuser = Parky::User.find user.id
   end
 
-  def info(id)
+  def refresh
+    @users.each { |id, user| refresh_one user }
+  end
+
+  def find(id)
     @users[id]
   end
 

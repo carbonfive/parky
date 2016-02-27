@@ -3,11 +3,29 @@ require 'tzinfo'
 class Parky::User
   attr_accessor :user_id, :im_id, :last_ask, :last_answer
 
+  def self.db=(db)
+    @@db = db
+  end
+
+  def self.find(user_id)
+    user = nil
+    @@db.execute "select im_id, last_ask, last_answer from users where user_id = ?", [ user_id ] do |row|
+      user = self.new user_id: user_id, im_id: row[0], last_ask: row[1], last_answer: row[2]
+    end
+    user
+  end
+
   def initialize(attrs={})
     @user_id     = attrs[:user_id]
     @im_id       = attrs[:im_id]
     @last_ask    = attrs[:last_ask]
     @last_answer = attrs[:last_answer]
+  end
+
+  def save
+    @@db.execute "delete from users where user_id = ?", [ @user_id ]
+    @@db.execute "insert into users (user_id, im_id, last_ask, last_answer)
+                  values (?, ?, ?, ?)", [ @user_id, @im_id, @last_ask, @last_answer ]
   end
 
   def has_been_asked_on?(time)

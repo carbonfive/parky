@@ -3,13 +3,14 @@ require 'time'
 require 'sqlite3'
 
 class Parky::Config
-  attr_reader :config, :pid_file
+  attr_reader :config, :pid_file, :db
 
   def initialize(config_dir = nil)
     @dir = config_dir || "#{ENV['HOME']}/.parky"
     FileUtils.mkdir @dir unless File.directory? @dir
     @pid_file = "#{@dir}/pid"
     @db = init_db
+    Parky::User.db = @db
 
     @timestamps = {}
     load_config :force => true
@@ -33,20 +34,6 @@ create table users (
 SQL
     end
     db
-  end
-
-  def get_dbuser(user_id)
-    user = nil
-    @db.execute "select im_id, last_ask, last_answer from users where user_id = ?", [ user_id ] do |row|
-      user = Parky::User.new user_id: user_id, im_id: row[0], last_ask: row[1], last_answer: row[2]
-    end
-    user
-  end
-
-  def save_dbuser(user)
-    @db.execute "delete from users where user_id = ?", [ user.user_id ]
-    @db.execute "insert into users (user_id, im_id, last_ask, last_answer)
-                 values (?, ?, ?, ?)", [ user.user_id, user.im_id, user.last_ask, user.last_answer ]
   end
 
   def slack_api_token
