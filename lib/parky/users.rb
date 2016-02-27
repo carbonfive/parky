@@ -10,14 +10,13 @@ class Parky::Users
 
   def populate
     print "Gather information about all the parking spot holders "
-    @names.each do |name|
-      @config.log "Looking up user: @#{name}"
-      resp = @client.users_info user: "@#{name}"
-      unless resp.ok
-        puts "Uh oh: #{info}"
-        return
-      end
-      user = resp.user
+    resp = @client.users_list
+    unless resp.ok
+      puts "Uh oh: #{resp}"
+      return
+    end
+    resp.members.each do |user|
+      next unless @names.include? user.name
       Parky::User.new(user_id: user.id).save unless Parky::User.find user.id
       refresh_one user
       @users[user.id] = user

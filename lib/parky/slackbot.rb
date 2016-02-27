@@ -153,6 +153,11 @@ module Parky
 parky help              Show this message
 parky hello             Say hello to me!
 parky whatsup           Tell me what parking spots are available today
+
+If you have a parking spot, I will ask you each morning if you drove to work.
+Please reply with 'yes' or 'no'.
+
+Love, your friend - Mr. Parky
 ```
 EOM
     end
