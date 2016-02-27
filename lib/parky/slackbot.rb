@@ -29,6 +29,7 @@ module Parky
 
       @client = Slack::RealTime::Client.new
       @users = Parky::Users.new @config, @client.web_client
+      @users.populate
     end
 
     def run
@@ -48,7 +49,6 @@ module Parky
         return
       end
 
-      @users.populate
       puts "Slackbot is active!"
 
       # in case Parky was down when the user came online
