@@ -6,6 +6,7 @@ module Parky
   class Slackbot
     def initialize(config)
       @config = config
+      @users = Parky::Users.new config
       @restarts = []
       @channels = Set.new
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
@@ -47,7 +48,7 @@ module Parky
         return
       end
 
-      @config.users.populate @client.web_client, @config
+      @users.populate @client.web_client
       puts "Slackbot is active!"
 
       # in case Parky was down when the user came online
@@ -73,7 +74,7 @@ module Parky
 
       @client.on :message do |data|
         next if data.user == @config.slackbot_id # this is Mr. Parky!
-        info = @config.users.info data.user
+        info = @users.info data.user
         next unless info
 
         user = @config.get_dbuser info.id
@@ -101,7 +102,7 @@ module Parky
 
       @client.on :presence_change do |data|
         next unless data['presence'] == 'active'
-        info = @config.users.info data.user
+        info = @users.info data.user
         next unless info
         ask info
       end
@@ -132,8 +133,8 @@ module Parky
     end
 
     def ask_all
-      @config.users.refresh
-      @config.users.all.each do |info|
+      @users.refresh
+      @users.all.each do |info|
         ask info if info['presence'] == 'active'
       end
     end
@@ -179,7 +180,7 @@ EOM
     end
 
     def hello(data, args, &respond)
-      info = @config.users.info data.user
+      info = @users.info data.user
       if info
         user = @config.get_dbuser info.id
         la_now = @tz_la.utc_to_local Time.now
@@ -201,8 +202,8 @@ EOM
       response = '```'
       response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
       statuses = {}
-      n = @config.users.names.max_by { |name| name.length }.length
-      @config.users.all.each do |user|
+      n = @users.names.max_by { |name| name.length }.length
+      @users.all.each do |user|
         dbuser = @config.get_dbuser user.id
         statuses[user.name] = dbuser.parking_spot_status
       end

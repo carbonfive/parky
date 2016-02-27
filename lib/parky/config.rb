@@ -49,10 +49,6 @@ SQL
                  values (?, ?, ?, ?)", [ user.user_id, user.im_id, user.last_ask, user.last_answer ]
   end
 
-  def users
-    @users || @users = Parky::Users.new()
-  end
-
   def slack_api_token
     @config[:slack_api_token]
   end
