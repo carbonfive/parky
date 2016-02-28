@@ -55,7 +55,7 @@ module Parky
       ask_all
 
       @client.on :message do |data|
-        next if data.user == @config.slackbot_id # this is Mr. Parky!
+        next if data.user == @config.slackbot_id # this is Mrs. Parky!
         next unless data.text
         tokens = data.text.split ' '
         channel = data.channel
@@ -73,7 +73,7 @@ module Parky
       end
 
       @client.on :message do |data|
-        next if data.user == @config.slackbot_id # this is Mr. Parky!
+        next if data.user == @config.slackbot_id # this is Mrs. Parky!
         user = @users.find data.user
         next unless user
 
@@ -157,7 +157,7 @@ parky whatsup           Tell me what parking spots are available today
 If you have a parking spot, I will ask you each morning if you drove to work.
 Please reply with 'yes' or 'no'.
 
-Love, your friend - Mr. Parky
+Love, your friend - Mrs. Parky
 ```
 EOM
     end
