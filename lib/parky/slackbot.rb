@@ -78,14 +78,15 @@ module Parky
         next unless user
 
         next unless data.channel == user.dbuser.im_id
+        next unless data.text
         next if data.text =~ /^parky/
 
         respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
-        if data.text == 'yes'
+        if [ 'yes', 'y' ].include? data.text.downcase
           respond.call( rand(20) == 0 ? @yes.sample : "Ok thanks!" )
           user.dbuser.last_answer = data.text
           user.dbuser.save
-        elsif data.text == 'no'
+        elsif [ 'no', 'n' ].include? data.text.downcase
           respond.call( rand(20) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
           user.dbuser.last_answer = data.text
           user.dbuser.save
