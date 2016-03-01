@@ -55,6 +55,6 @@ class Parky::User
 
   def parking_spot_status
     return 'unknown' unless @last_answer
-    @last_answer == 'yes' ? 'in use' : 'available'
+    @last_answer.downcase == 'yes' ? 'in use' : 'available'
   end
 end
