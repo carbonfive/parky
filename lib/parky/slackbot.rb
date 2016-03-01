@@ -79,7 +79,7 @@ module Parky
 
         next unless data.channel == user.dbuser.im_id
         next unless data.text
-        next if data.text =~ /^parky/
+        next if data.text =~ /^parky/i
 
         respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
         if [ 'yes', 'y' ].include? data.text.downcase
