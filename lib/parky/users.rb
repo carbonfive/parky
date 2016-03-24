@@ -4,7 +4,7 @@ class Parky::Users
   def initialize(config, client)
     @config = config
     @client = client
-    @names = [ 'mike', 'rudy', 'rob', 'sueanna', 'matt', 'justin', 'amanda', 'nate', 'yasmine', 'alexa' ]
+    @names = [ 'mike', 'rudy', 'rob', 'sueanna', 'crsven', 'justin', 'amanda', 'nate', 'yasmine', 'alexa' ]
     @users = { }
   end
 
