@@ -144,7 +144,7 @@ module Parky
 
     def method_missing(name, *args)
       @config.log "No method found for: #{name}"
-      @config.log args[0]
+      @config.log args[0].text
     end
 
     def help(data, args, &respond)
