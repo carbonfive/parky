@@ -3,12 +3,24 @@ require 'tzinfo'
 module Parky
   class Slackbot
     def initialize(bot)
-      bot.on 'help',    &(method :help)
-      bot.on 'hello',   &(method :hello)
-      bot.on 'whatsup', &(method :whatsup)
-      bot.on 'reset',   &(method :reset)
+      @bot = bot
+      @bot.on_help(&(method :help))
+      @bot.on 'help',    &(method :help)
+      @bot.on 'hello',   &(method :hello)
+      @bot.on 'whatsup', &(method :whatsup)
+      @bot.on 'reset',   &(method :reset)
+      @bot.on String,    &(method :answer)
 
-      @names = [ 'mike', 'rudy', 'rob', 'sueanna', 'crsven', 'justin', 'amanda', 'nate', 'yasmine', 'alexa' ]
+      @bot.client.on :presence_change do |data|
+        next unless data['presence'] == 'active'
+        user = Slacky::User.find data.user
+        next unless user
+        ask user
+      end
+
+      @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
+      #@names = [ 'mike', 'rudy', 'rob', 'sueanna', 'crsven', 'justin', 'amanda', 'nate', 'yasmine', 'alexa' ]
+      @names = [ 'mike' ]
 
       @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:' ]
       @yes = [
@@ -25,46 +37,6 @@ module Parky
       ]
 
       ask_all
-
-      #@users = Parky::Users.new @config, @client.web_client
-      #@users.populate
-    end
-
-    def run
-      # in case Parky was down when the user came online
-      ask_all
-
-      @client.on :message do |data|
-        next if data.user == @config.slackbot_id # this is Mrs. Parky!
-        user = @users.find data.user
-        next unless user
-
-        next unless data.channel == user.dbuser.im_id
-        next unless data.text
-        next if data.text =~ /^parky/i
-
-        respond = Proc.new { |msg| @client.message channel: data.channel, reply_to: data.id, text: msg }
-        if [ 'yes', 'y' ].include? data.text.downcase
-          respond.call( rand(20) == 0 ? @yes.sample : "Ok thanks!" )
-          user.dbuser.last_answer = 'yes'
-          user.dbuser.save
-        elsif [ 'no', 'n' ].include? data.text.downcase
-          respond.call( rand(20) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
-          user.dbuser.last_answer = 'no'
-          user.dbuser.save
-        else
-          respond.call "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
-        end
-      end
-
-      @client.on :presence_change do |data|
-        next unless data['presence'] == 'active'
-        user = @users.find data.user
-        next unless user
-        ask user
-      end
-
-      @client.start!
     end
 
     def ask_all
@@ -78,18 +50,18 @@ module Parky
       now = Time.now
       parky_user = User.new user
       if parky_user.should_ask_at?(now)
-        im = @client.web_client.im_open user: user.id
+        im = @bot.client.web_client.im_open user: user.slack_id
         car = @car_emojis.sample
-        message = "Hi #{user.name}!  Did you #{car} to work today?"
-        @client.web_client.chat_postMessage channel: im.channel.id, text: message
+        message = "Hi #{user.username}!  Did you #{car} to work today?"
+        @bot.client.web_client.chat_postMessage channel: im.channel.id, text: message
         user.slack_im_id = im.channel.id
-        user.data['last_ask'] = now.to_i
-        user.data['last_answer'] = nil
+        parky_user.last_ask = now.to_i
+        parky_user.last_answer = nil
         user.save
       end
     end
 
-    def help(data, args, &respond)
+    def help(user, data, args, &respond)
       respond.call "Hello, I am Parky.  I can do the following things:"
       respond.call <<EOM
 ```
@@ -103,38 +75,41 @@ Please reply with 'yes' or 'no'.
 Love, your friend - Mrs. Parky
 ```
 EOM
+      true
     end
 
-    def hello(data, args, &respond)
-      user = User.find data.user
-      if user
+    def hello(user, data, args, &respond)
+      if @names.include? user.username
         parky_user = User.new user
-        tz_now = user.tz.utc_to_local Time.now
-        respond.call "Hello #{user.name}!  You are all set to use Parky."
+        tz_now = parky_user.tz.utc_to_local Time.now
+        respond.call "Hello #{user.username}!  You are all set to use Parky."
         respond.call "Here is what I currently know about you:"
         respond.call <<EOM
 ```
 today        : #{tz_now.strftime '%F'}
-name         : #{user.profile.first_name} #{user.profile.last_name}
-email        : #{user.profile.email}
+name         : #{user.first_name} #{user.last_name}
+email        : #{user.email}
 timezone     : #{user.timezone}
 parking spot : #{parky_user.parking_spot_status}
 ```
 EOM
       else
-        respond.call "Hello non-parking-spot-haver #{data.user}!"
+        respond.call "Hello non-parking-spot-haver #{user.username}!"
         respond.call "You don't park in any of my spots, so clearly you're dead to me"
       end
+      true
     end
 
-    def whatsup(data, args, &respond)
+    def whatsup(user, data, args, &respond)
       la_now = @tz_la.utc_to_local Time.now
       response = '```'
       response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
       statuses = {}
-      n = @users.names.max_by { |name| name.length }.length
-      @users.all.each do |user|
-        statuses[user.name] = user.dbuser.parking_spot_status
+      n = @names.max_by { |name| name.length }.length
+      @names.each do |name|
+        user = Slacky::User.find name
+        parky_user = User.new user
+        statuses[name] = parky_user.parking_spot_status
       end
       statuses = statuses.sort_by { |tuple| "#{tuple[1]}-#{tuple[0]}" }
       statuses.each do |tuple|
@@ -144,13 +119,33 @@ EOM
       respond.call response
     end
 
-    def reset(data, args, &respond)
-      user = User.find data.user
-      if user
-        user.reset
+    def reset(user, data, args, &respond)
+      user.reset
+      user.save
+      hello user, data, args, &respond
+      true
+    end
+
+    def answer(user, data, args, &respond)
+      return false unless data.channel == user.slack_im_id
+      return false unless data.text
+      return false if data.text =~ /^parky/i
+
+      parky_user = User.new user
+
+      if [ 'yes', 'y' ].include? data.text.downcase
+        respond.call( rand(20) == 0 ? @yes.sample : "Ok thanks!" )
+        parky_user.last_answer = 'yes'
         user.save
-        hello data, args, &respond
+      elsif [ 'no', 'n' ].include? data.text.downcase
+        respond.call( rand(20) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
+        parky_user.last_answer = 'no'
+        user.save
+      else
+        respond.call "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
       end
+
+      true
     end
   end
 end
