@@ -52,7 +52,9 @@ module Parky
 
     def ask(user)
       now = Time.now
-      if user.should_ask_at?(now)
+      should_ask = ! user.has_been_asked_on?(now)
+      should_ask &&= user.is_work_hours?(now) if @config.work_hours_only?
+      if should_ask
         im = @bot.client.web_client.im_open user: user.slack_id
         car = @car_emojis.sample
         message = "Hi #{user.username}!  Did you #{car} to work today?"

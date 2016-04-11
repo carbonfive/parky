@@ -35,7 +35,6 @@ module Parky
     end
 
     def is_work_hours?(time)
-      return true  # TODO: remove or make mo' betta
       tz_time = tz.utc_to_local time.getgm
       return false if tz_time.wday == 0 || tz_time.wday == 6  # weekends
       tz_time.hour >= 8 && tz_time.hour <= 17
