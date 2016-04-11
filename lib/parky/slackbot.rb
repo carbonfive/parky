@@ -3,6 +3,8 @@ require 'tzinfo'
 module Parky
   class Slackbot
     def initialize(bot)
+      Slacky::User.decorator = User
+
       @bot = bot
       @bot.on_help(&(method :help))
       @bot.on 'help',    &(method :help)
@@ -48,15 +50,14 @@ module Parky
 
     def ask(user)
       now = Time.now
-      parky_user = User.new user
-      if parky_user.should_ask_at?(now)
+      if user.should_ask_at?(now)
         im = @bot.client.web_client.im_open user: user.slack_id
         car = @car_emojis.sample
         message = "Hi #{user.username}!  Did you #{car} to work today?"
         @bot.client.web_client.chat_postMessage channel: im.channel.id, text: message
         user.slack_im_id = im.channel.id
-        parky_user.last_ask = now.to_i
-        parky_user.last_answer = nil
+        user.last_ask = now.to_i
+        user.last_answer = nil
         user.save
       end
     end
@@ -80,8 +81,7 @@ EOM
 
     def hello(user, data, args, &respond)
       if @names.include? user.username
-        parky_user = User.new user
-        tz_now = parky_user.tz.utc_to_local Time.now
+        tz_now = user.tz.utc_to_local Time.now
         respond.call "Hello #{user.username}!  You are all set to use Parky."
         respond.call "Here is what I currently know about you:"
         respond.call <<EOM
@@ -90,7 +90,7 @@ today        : #{tz_now.strftime '%F'}
 name         : #{user.first_name} #{user.last_name}
 email        : #{user.email}
 timezone     : #{user.timezone}
-parking spot : #{parky_user.parking_spot_status}
+parking spot : #{user.parking_spot_status}
 ```
 EOM
       else
@@ -108,8 +108,7 @@ EOM
       n = @names.max_by { |name| name.length }.length
       @names.each do |name|
         user = Slacky::User.find name
-        parky_user = User.new user
-        statuses[name] = parky_user.parking_spot_status
+        statuses[name] = user.parking_spot_status
       end
       statuses = statuses.sort_by { |tuple| "#{tuple[1]}-#{tuple[0]}" }
       statuses.each do |tuple|
@@ -131,15 +130,13 @@ EOM
       return false unless data.text
       return false if data.text =~ /^parky/i
 
-      parky_user = User.new user
-
       if [ 'yes', 'y' ].include? data.text.downcase
         respond.call( rand(20) == 0 ? @yes.sample : "Ok thanks!" )
-        parky_user.last_answer = 'yes'
+        user.last_answer = 'yes'
         user.save
       elsif [ 'no', 'n' ].include? data.text.downcase
         respond.call( rand(20) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
-        parky_user.last_answer = 'no'
+        user.last_answer = 'no'
         user.save
       else
         respond.call "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
