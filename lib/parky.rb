@@ -1,5 +1,6 @@
 module Parky
-  require 'parky/version'
+  require 'parky/config'
   require 'parky/slackbot'
   require 'parky/user'
+  require 'parky/version'
 end

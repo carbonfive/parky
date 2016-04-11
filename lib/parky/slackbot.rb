@@ -5,6 +5,9 @@ module Parky
     def initialize(bot)
       Slacky::User.decorator = User
 
+      @config = bot.config
+      @config.extend Config
+
       @bot = bot
       @bot.on_help(&(method :help))
       @bot.on 'help',    &(method :help)
@@ -21,9 +24,6 @@ module Parky
       end
 
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
-      #@names = [ 'mike', 'rudy', 'rob', 'sueanna', 'crsven', 'justin', 'amanda', 'nate', 'yasmine', 'alexa' ]
-      @names = [ 'mike' ]
-
       @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:' ]
       @yes = [
         "Got it.  I'll make sure no one parks on top of your car.",
@@ -38,11 +38,13 @@ module Parky
         "Oh, did your drivers license finally get revoked from all those DUIs?"
       ]
 
+      @config.log "Parky recognizes parkers: #{@config.usernames}"
+
       ask_all
     end
 
     def ask_all
-      @names.each do |name|
+      @config.usernames.each do |name|
         user = Slacky::User.find name
         ask user if user && user.presence == 'active'
       end
@@ -80,7 +82,7 @@ EOM
     end
 
     def hello(user, data, args, &respond)
-      if @names.include? user.username
+      if @config.usernames.include? user.username
         tz_now = user.tz.utc_to_local Time.now
         respond.call "Hello #{user.username}!  You are all set to use Parky."
         respond.call "Here is what I currently know about you:"
@@ -105,8 +107,8 @@ EOM
       response = '```'
       response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
       statuses = {}
-      n = @names.max_by { |name| name.length }.length
-      @names.each do |name|
+      n = @config.usernames.max_by { |name| name.length }.length
+      @config.usernames.each do |name|
         user = Slacky::User.find name
         statuses[name] = user.parking_spot_status
       end
