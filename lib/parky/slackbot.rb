@@ -14,6 +14,7 @@ module Parky
       @bot.on_command 'whatsup', &(method :whatsup)
       @bot.on_command 'reset',   &(method :reset)
       @bot.on_im nil, &(method :answer)
+      @bot.at '*/5 * * * *', &(method :ask_all)
 
       @bot.on :presence_change do |data|
         next unless ( user = Slacky::User.find data.user )
@@ -36,6 +37,7 @@ module Parky
       ]
 
       @config.log "Parky recognizes parkers: #{users.map(&:username)}"
+      puts        "Parky recognizes parkers: #{users.map(&:username)}"
 
       ask_all
     end

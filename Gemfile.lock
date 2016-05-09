@@ -9,6 +9,8 @@ PATH
   remote: /Users/mike/Projects/slacky
   specs:
     slacky (1.0)
+      dotenv
+      em-cron
       eventmachine
       faye-websocket
       pg
@@ -25,6 +27,10 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
+    dotenv (2.1.1)
+    em-cron (0.2.0)
+      eventmachine
+      parse-cron (~> 0.1)
     eventmachine (1.2.0.1)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
@@ -36,14 +42,15 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     gli (2.13.4)
-    hashie (3.4.3)
+    hashie (3.4.4)
     i18n (0.7.0)
     json (1.8.3)
     minitest (5.8.4)
     multipart-post (2.0.0)
+    parse-cron (0.1.4)
     pg (0.18.4)
     rake (10.5.0)
-    slack-ruby-client (0.7.0)
+    slack-ruby-client (0.7.2)
       activesupport
       faraday
       faraday_middleware
@@ -54,7 +61,7 @@ GEM
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2016.3)
+    tzinfo-data (1.2016.4)
       tzinfo (>= 1.0.0)
     websocket-driver (0.6.3)
       websocket-extensions (>= 0.1.0)
