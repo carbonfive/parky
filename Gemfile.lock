@@ -1,12 +1,6 @@
-PATH
-  remote: .
-  specs:
-    parky (1.0)
-      slacky
-      tzinfo
-
-PATH
-  remote: /Users/mike/Projects/slacky
+GIT
+  remote: git://github.com/carbonfive/slacky.git
+  revision: 80ea476148a7960494ac89b6b3f58197db2a8810
   specs:
     slacky (1.0)
       dotenv
@@ -17,6 +11,13 @@ PATH
       slack-ruby-client (>= 0.6)
       tzinfo
       tzinfo-data
+
+PATH
+  remote: .
+  specs:
+    parky (1.0)
+      slacky
+      tzinfo
 
 GEM
   remote: http://rubygems.org/
