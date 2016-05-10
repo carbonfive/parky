@@ -16,12 +16,8 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency 'slack-ruby-client', ">= 0.6"
-  s.add_runtime_dependency 'sqlite3'
-  s.add_runtime_dependency 'eventmachine'
-  s.add_runtime_dependency 'faye-websocket'
-  s.add_runtime_dependency 'tzinfo'
-  s.add_runtime_dependency 'tzinfo-data'
+  s.add_runtime_dependency "slacky"
+  s.add_runtime_dependency "tzinfo"
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'minitest'

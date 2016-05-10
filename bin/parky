@@ -2,6 +2,7 @@
 
 $LOAD_PATH << File.dirname(__FILE__) + "/../lib" if $0 == __FILE__
 require 'optparse'
+require 'slacky'
 require 'parky'
 
 config = { :write => false }
@@ -30,8 +31,9 @@ option_parser.parse!
 op = ARGV.shift
 if operations.include?(op)
   begin
-    cli = Parky::CLI.new config
-    exit ( cli.send(op.to_sym, ARGV) ? 0 : 1 )
+    cli = Slacky::CLI.new "Parky", config
+    Parky::Slackbot.new cli.bot
+    exit cli.send(op.to_sym, ARGV) ? 0 : 1
   rescue SystemExit => e
     exit e.status
   rescue ArgumentError => e
