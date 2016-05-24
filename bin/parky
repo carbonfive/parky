@@ -31,8 +31,7 @@ option_parser.parse!
 op = ARGV.shift
 if operations.include?(op)
   begin
-    cli = Slacky::CLI.new "Parky", config
-    Parky::Slackbot.new cli.bot
+    cli = Slacky::CLI.new "Parky", Parky::Slackbot, config
     exit cli.send(op.to_sym, ARGV) ? 0 : 1
   rescue SystemExit => e
     exit e.status
