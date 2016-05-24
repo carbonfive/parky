@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     parky (1.0)
-      slacky
+      slacky (>= 0.1.1)
       tzinfo
 
 GEM
