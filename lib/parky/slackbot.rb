@@ -64,7 +64,7 @@ module Parky
         im = @bot.web_client.im_open user: user.slack_id
         car = @car_emojis.sample
         message = "Hi #{user.username}!  Did you #{car} to work today?"
-        @bot.web_client.chat_postMessage channel: im.channel.id, text: message
+        @bot.web_client.chat_postMessage channel: im.channel.id, text: message, as_user: true
         user.slack_im_id = im.channel.id
         user.last_ask = now.to_i
         user.last_answer = nil
