@@ -15,7 +15,7 @@ module Parky
       @bot.on_command 'map',     &(method :map)
       @bot.on_command 'reset',   &(method :reset)
       @bot.on_im nil, &(method :answer)
-      @bot.at '*/5 * * * *', &(method :ask_all)
+      @bot.at '* * * * *', &(method :ask_all)
 
       @bot.on :presence_change do |data|
         next unless ( user = Slacky::User.find data.user )
