@@ -12,6 +12,7 @@ module Parky
       @bot.on_command 'help',    &(method :help)
       @bot.on_command 'hello',   &(method :hello)
       @bot.on_command 'whatsup', &(method :whatsup)
+      @bot.on_command 'map',     &(method :map)
       @bot.on_command 'reset',   &(method :reset)
       @bot.on_im nil, &(method :answer)
       @bot.at '*/5 * * * *', &(method :ask_all)
@@ -78,6 +79,7 @@ module Parky
 parky help              Show this message
 parky hello             Say hello to me!
 parky whatsup           Tell me what parking spots are available today
+parky map               Show me who parks in each spot
 
 If you have a parking spot, I will ask you each morning if you drove to work.
 Please reply with 'yes' or 'no'.
@@ -121,8 +123,18 @@ EOM
       statuses.each do |tuple|
         response += sprintf("%-#{n}s : %s", tuple[0], tuple[1]) + "\n"
       end
+      response += "\n"
+      response += "You can type 'parky map' to see who parks in each spot"
       response += '```'
       message.reply response
+    end
+
+    def map(message)
+      @bot.web_client.chat_postMessage channel: message.channel.slack_id, text: "Ok gimme a second to pull this out of my ass..... ets directory", as_user: true
+      root = "#{File.dirname(__FILE__)}/../.."
+      file = "#{root}/assets/images/parking-map.jpg"
+      upload = UploadIO.new file, 'image/jpg'
+      @bot.web_client.files_upload file: upload, filetype: 'jpg', filename: 'parking-map.jpg', title: 'Carbon Five LA parking map', channels: message.channel.slack_id
     end
 
     def reset(message)
