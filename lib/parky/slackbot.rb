@@ -14,6 +14,8 @@ module Parky
       @bot.on_command 'whatsup', &(method :whatsup)
       @bot.on_command 'map',     &(method :map)
       @bot.on_command 'reset',   &(method :reset)
+      @bot.on_command 'claim',   &(method :claim)
+      @bot.on_command 'unclaim', &(method :unclaim)
       @bot.on_im nil, &(method :answer)
       @bot.at '* * * * *', &(method :ask_all)
 
@@ -56,6 +58,7 @@ module Parky
     def ask(user)
       return unless @config.usernames.include? user.username
       return unless user.presence == 'active'
+      return unless user.valid?
 
       now = Time.now
       should_ask = ! user.has_been_asked_on?(now)
@@ -80,6 +83,8 @@ parky help              Show this message
 parky hello             Say hello to me!
 parky whatsup           Tell me what parking spots are available today
 parky map               Show me who parks in each spot
+parky claim <user>      Claim someone's unused spot for the day
+parky unclaim           Release today's claimed spot
 
 If you have a parking spot, I will ask you each morning if you drove to work.
 Please reply with 'yes' or 'no'.
@@ -141,6 +146,36 @@ EOM
       message.user.reset
       message.user.save
       hello message
+    end
+
+    def claim(message)
+      args = message.command_args
+      c = claimed = Slacky::User.find args
+      pc = previous_claimer = claimed && claimed.find_claimer
+
+      no_person       = "You need to specify who's spot you want to claim.  ex: `parky claim @jesus` (if she had a spot)"
+      not_a_person    = "Sorry charlie.  #{args} is not a person, let alone a _parking_ person.  Try again.  :thumbsdown:"
+      no_parking_spot = "No deal.  #{c && c.username} doesn't have a parking spot, so you can't claim it.  That's just _basic_ metaphysics. :face_with_rolling_eyes:"
+      claimed_by_you  = "Ummm... you already have #{c && c.username}'s spot claimed.  So I guess you can still have it.  :happy_dooby:"
+      too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
+      not_available   = "Bzzzz!  #{c && c.username} hasn't released their spot today.  Swiper no swiping!  :no_entry_sign:"
+
+      return ( message.reply no_person       ) unless args.strip.length > 0
+      return ( message.reply not_a_person    ) unless claimed
+      return ( message.reply no_parking_spot ) unless @config.usernames.include? claimed.username
+      return ( message.reply claimed_by_you  ) if previous_claimer && previous_claimer.slack_id == message.user.slack_id
+      return ( message.reply too_slow        ) if previous_claimer
+      return ( message.reply not_available   ) unless claimed.parking_spot_status == 'available'
+
+      message.user.claim claimed
+      message.user.save
+      message.reply "Boo ya!  You claimed #{claimed.username}'s spot for today.  :trophy:"
+    end
+
+    def unclaim(message)
+      message.user.unclaim
+      message.user.save
+      message.reply "Ok, you no parky today.  kthxbai  :stuck_out_tongue_winking_eye:"
     end
 
     def answer(message)
