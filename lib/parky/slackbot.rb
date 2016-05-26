@@ -129,7 +129,8 @@ EOM
         response += sprintf("%-#{n}s : %s", tuple[0], tuple[1]) + "\n"
       end
       response += "\n"
-      response += "You can type 'parky map' to see who parks in each spot"
+      response += "You can type 'parky map' to see who parks in each spot\n"
+      response += "You can type 'parky claim <user>' to claim that user's spot (if it's available)"
       response += '```'
       message.reply response
     end
