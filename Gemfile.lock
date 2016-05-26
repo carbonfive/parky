@@ -3,7 +3,7 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.1.4)
+      slacky (>= 0.2)
       tzinfo
 
 GEM
@@ -46,7 +46,7 @@ GEM
       hashie
       json
       websocket-driver
-    slacky (0.1.4)
+    slacky (0.2)
       dotenv
       em-cron
       eventmachine
