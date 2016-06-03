@@ -3,7 +3,7 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.2)
+      slacky (>= 0.2.2)
       tzinfo
 
 GEM
@@ -38,7 +38,7 @@ GEM
     parse-cron (0.1.4)
     pg (0.18.4)
     rake (11.1.2)
-    slack-ruby-client (0.7.3)
+    slack-ruby-client (0.7.4)
       activesupport
       faraday
       faraday_middleware
@@ -46,7 +46,7 @@ GEM
       hashie
       json
       websocket-driver
-    slacky (0.2)
+    slacky (0.2.2)
       dotenv
       em-cron
       eventmachine
