@@ -66,12 +66,11 @@ module Parky
     end
 
     def parking_spot_status
-      return 'unknown' unless has_been_asked_on? Time.now
-      return 'unknown' unless last_answer
-      status = last_answer.downcase == 'yes' ? 'in use' : 'available'
-      if status == 'available'
+      status = 'unknown' unless has_been_asked_on?(Time.now) && last_answer
+      status ||= last_answer.downcase == 'yes' ? 'in use' : 'available'
+      if status == 'available' || status == 'unknown'
         claimer = find_claimer
-        return "claimed by #{claimer.username}" if claimer
+        status = "claimed by #{claimer.username}" if claimer
       end
       status
     end

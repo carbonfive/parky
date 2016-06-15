@@ -79,12 +79,13 @@ module Parky
       message.reply "Hello, I am Parky.  I can do the following things:"
       message.reply <<EOM
 ```
-parky help              Show this message
-parky hello             Say hello to me!
-parky whatsup           Tell me what parking spots are available today
-parky map               Show me who parks in each spot
-parky claim <user>      Claim someone's unused spot for the day
-parky unclaim           Release today's claimed spot
+parky help               Show this message
+parky hello              Say hello to me!
+parky whatsup            Tell me what parking spots are available today
+parky map                Show me who parks in each spot
+parky claim <user>       Claim someone's unused spot for the day
+parky claim <user> now!  No really, gimme that spot
+parky unclaim            Release today's claimed spot
 
 If you have a parking spot, I will ask you each morning if you drove to work.
 Please reply with 'yes' or 'no'.
@@ -150,9 +151,12 @@ EOM
     end
 
     def claim(message)
-      args = message.command_args
-      c = claimed = Slacky::User.find args
+      args = message.command_args.split ' '
+      name = args[0] if args.length > 0
+      c = claimed = Slacky::User.find name
       pc = previous_claimer = claimed && claimed.find_claimer
+      now = args[1] if args.length > 1
+      force = ( now == 'now!' )
 
       no_person       = "You need to specify who's spot you want to claim.  ex: `parky claim @jesus` (if she had a spot)"
       not_a_person    = "Sorry charlie.  #{args} is not a person, let alone a _parking_ person.  Try again.  :thumbsdown:"
@@ -161,12 +165,12 @@ EOM
       too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
       not_available   = "Bzzzz!  #{c && c.username} hasn't released their spot today.  Swiper no swiping!  :no_entry_sign:"
 
-      return ( message.reply no_person       ) unless args.strip.length > 0
+      return ( message.reply no_person       ) if args.length == 0
       return ( message.reply not_a_person    ) unless claimed
       return ( message.reply no_parking_spot ) unless @config.usernames.include? claimed.username
       return ( message.reply claimed_by_you  ) if previous_claimer && previous_claimer.slack_id == message.user.slack_id
       return ( message.reply too_slow        ) if previous_claimer
-      return ( message.reply not_available   ) unless claimed.parking_spot_status == 'available'
+      return ( message.reply not_available   ) unless claimed.parking_spot_status == 'available' || ( claimed.parking_spot_status == 'unknown' && force )
 
       message.user.claim claimed
       message.user.save
@@ -182,17 +186,33 @@ EOM
     def answer(message)
       return if message.command?
 
+      claimer = message.user.find_claimer
+
       if message.yes?
         message.reply( rand(10) == 0 ? @yes.sample : "Ok thanks!" )
         message.user.last_answer = 'yes'
         message.user.save
+        if claimer
+          message = "Whoops!  #{message.user.username} just stole their spot _back_ from you.  Sucker.  :middle_finger:"
+          send_message claimer, message
+        end
       elsif message.no?
         message.reply( rand(10) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
         message.user.last_answer = 'no'
         message.user.save
+        if claimer
+          message = "Breaking news!  #{message.user.username} gave up their spot.  Looks like it's all yours.  :tada:"
+          send_message claimer, message
+        end
       else
         message.reply "Hmmm.  I don't know what that means.  Try answering with 'yes' or 'no'."
       end
+    end
+
+    def send_message(user, message)
+      return unless user
+      im = @bot.web_client.im_open user: user.slack_id
+      @bot.web_client.chat_postMessage channel: im.channel.id, text: message, as_user: true
     end
   end
 end
