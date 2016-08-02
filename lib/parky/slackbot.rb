@@ -152,7 +152,7 @@ EOM
 
     def claim(message)
       args = message.command_args.split ' '
-      name = args[0] if args.length > 0
+      name = args[0].downcase if args.length > 0
       c = claimed = Slacky::User.find name
       pc = previous_claimer = claimed && claimed.find_claimer
       now = args[1] if args.length > 1
