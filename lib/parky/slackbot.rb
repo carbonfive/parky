@@ -165,7 +165,7 @@ EOM
       claimed_by_you  = "Ummm... you already have #{c && c.username}'s spot claimed.  So I guess you can still have it.  :happy_dooby:"
       too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
       not_available   = "Bzzzz!  #{c && c.username} is using their spot today.  Swiper no swiping!  :no_entry_sign:"
-      maybe_available = "Hold on cowboy :horse:  `#{c && c.username}` hasn't responded yet.  If you're sure the spot is open try this:" +
+      maybe_available = "Hold on cowboy!  #{c && c.username} hasn't released their spot yet.  Try this if you're sure.  :thinking_face:" +
                         "```parky claim #{c && c.username} now!```"
 
       return ( message.reply no_person       ) if args.length == 0
