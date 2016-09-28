@@ -131,7 +131,8 @@ EOM
       end
       response += "\n"
       response += "You can type 'parky map' to see who parks in each spot\n"
-      response += "You can type 'parky claim <user>' to claim that user's spot (if it's available)"
+      response += "You can type 'parky claim <user>' to claim that user's spot if it's available"
+      response += "You can type 'parky claim <user> now!' to claim that user's spot if it's in limbo"
       response += '```'
       message.reply response
     end
@@ -163,14 +164,17 @@ EOM
       no_parking_spot = "No deal.  #{c && c.username} doesn't have a parking spot, so you can't claim it.  That's just _basic_ metaphysics. :face_with_rolling_eyes:"
       claimed_by_you  = "Ummm... you already have #{c && c.username}'s spot claimed.  So I guess you can still have it.  :happy_dooby:"
       too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
-      not_available   = "Bzzzz!  #{c && c.username} hasn't released their spot today.  Swiper no swiping!  :no_entry_sign:"
+      not_available   = "Bzzzz!  #{c && c.username} is using their spot today.  Swiper no swiping!  :no_entry_sign:"
+      maybe_available = "Hold on cowboy :horse:!  #{c && c.username} hasn't responded yet.  If you're sure the spot is open try this: \n" +
+                        "`parky claim #{c && c.username} now!`"
 
       return ( message.reply no_person       ) if args.length == 0
       return ( message.reply not_a_person    ) unless claimed
       return ( message.reply no_parking_spot ) unless @config.usernames.include? claimed.username
       return ( message.reply claimed_by_you  ) if previous_claimer && previous_claimer.slack_id == message.user.slack_id
       return ( message.reply too_slow        ) if previous_claimer
-      return ( message.reply not_available   ) unless claimed.parking_spot_status == 'available' || ( claimed.parking_spot_status == 'unknown' && force )
+      return ( message.reply not_available   ) if claimed.parking_spot_status == 'in use'
+      return ( message.reply maybe_available ) if claimed.parking_spot_status == 'unknown' && ! force
 
       message.user.claim claimed
       message.user.save
