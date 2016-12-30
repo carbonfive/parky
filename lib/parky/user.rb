@@ -31,6 +31,11 @@ module Parky
       end
     end
 
+    def find_claimer
+      spot = Spot.find self
+      spot && spot.claimer
+    end
+
     def tz
       @tz ||= TZInfo::Timezone.get timezone
     end

@@ -13,5 +13,9 @@ module Parky
     def work_hours_only?
       ENV['WORK_HOURS_ONLY'] != 'false'
     end
+
+    def timesheet_api_token
+      ENV['TIMESHEET_API_TOKEN']
+    end
   end
 end

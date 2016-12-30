@@ -11,6 +11,8 @@ module Parky
       Spot.config = @config
       Spot.initialize_table
 
+      @holidays = get_holidays
+
       @bot = bot
       @bot.on_command 'help',    &(method :help)
       @bot.on_command 'hello',   &(method :hello)
@@ -46,6 +48,31 @@ module Parky
       puts        "Parky recognizes parkers: #{users.map(&:username)}"
 
       ask_all
+    end
+
+    def get_holidays
+      print "Getting holidays from timesheet..."
+      http = Net::HTTP.new "timesheet.carbonfive.com", 443
+      http.use_ssl = true
+      holidays = http.start do |server|
+        get = Net::HTTP::Get.new "/api/holidays.json?api_token=#{@config.timesheet_api_token}"
+        response = server.request get
+        case response.code.to_i
+        when 200, 201
+          JSON.parse response.body
+        else
+          @config.log "Error retreiving holidays from timesheet"
+          @config.log "#{response.code} - #{response.message}"
+          []
+        end
+      end
+      puts " done! (found #{holidays.length})"
+      holidays
+    end
+
+    def is_holiday?(time)
+      day = time.strftime '%F'
+      @holidays.any? { |h| h['start_date'] <= day && h['end_date'] >= day }
     end
 
     def users
@@ -88,6 +115,7 @@ module Parky
       now = Time.now
       should_ask = ! user.has_been_asked_on?(now)
       should_ask &&= user.is_work_hours?(now) if @config.work_hours_only?
+      should_ask &&= !is_holiday?(now) if @config.work_hours_only?
       if should_ask
         im = @bot.web_client.im_open user: user.slack_id
         car = @car_emojis.sample
@@ -132,7 +160,6 @@ today        : #{tz_now.strftime '%F'}
 name         : #{message.user.first_name} #{message.user.last_name}
 email        : #{message.user.email}
 timezone     : #{message.user.timezone}
-parking spot : #{message.user.parking_spot_status}
 ```
 EOM
       else
