@@ -28,7 +28,7 @@ module Parky
       end
 
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
-      @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:' ]
+      @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:', ':racing_car' ]
       @yes = [
         "Got it.  I'll make sure no one parks on top of your car.",
         "Great!  I'll tell Al Gore you don't care about global warming.",
