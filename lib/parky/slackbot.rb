@@ -175,7 +175,7 @@ EOM
       n = spots.length / 10 + 1
       max = usernames.map(&:length).max
       spots.each do |spot|
-        response += sprintf("%-#{n}d. %-#{max}s : %s", spot.number, spot.username, spot.status) + "\n"
+        response += sprintf("%#{n}d. %-#{max}s : %s", spot.number, spot.username, spot.status) + "\n"
       end
       response += "\n"
       response += "You can type 'parky map' to see who parks in each spot\n"
