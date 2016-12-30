@@ -8,6 +8,9 @@ module Parky
       @config = bot.config
       @config.extend Config
 
+      Spot.config = @config
+      Spot.initialize_table
+
       @bot = bot
       @bot.on_command 'help',    &(method :help)
       @bot.on_command 'hello',   &(method :hello)
@@ -46,7 +49,29 @@ module Parky
     end
 
     def users
-      Slacky::User.find @config.usernames
+      Slacky::User.find usernames
+    end
+
+    def spots
+      spotnames.map do |spotname|
+        number, name = spotname.split '-'
+        number = number.to_i
+        owner = Slacky::User.find name
+        spot = Spot.find number
+        if !spot || ( spot.owner_id && spot.owner_id != owner.slack_id )
+          spot = Spot.new number: number, owner_id: ( owner ? owner.slack_id : nil )
+          spot.save
+        end
+        spot
+      end
+    end
+
+    def spotnames
+      @config.spotnames
+    end
+
+    def usernames
+      @config.usernames
     end
 
     def ask_all
@@ -56,7 +81,7 @@ module Parky
     end
 
     def ask(user)
-      return unless @config.usernames.include? user.username
+      return unless usernames.include? user.username
       return unless user.presence == 'active'
       return unless user.valid?
 
@@ -97,7 +122,7 @@ EOM
     end
 
     def hello(message)
-      if @config.usernames.include? message.user.username
+      if usernames.include? message.user.username
         tz_now = message.user.tz.utc_to_local Time.now
         message.reply "Hello #{message.user.username}!  You are all set to use Parky."
         message.reply "Here is what I currently know about you:"
@@ -120,14 +145,10 @@ EOM
       la_now = @tz_la.utc_to_local Time.now
       response = '```'
       response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
-      statuses = {}
-      n = users.map(&:username).map(&:length).max
-      users.each do |user|
-        statuses[user.username] = user.parking_spot_status
-      end
-      statuses = statuses.sort_by { |tuple| "#{tuple[1]}-#{tuple[0]}" }
-      statuses.each do |tuple|
-        response += sprintf("%-#{n}s : %s", tuple[0], tuple[1]) + "\n"
+      n = spots.length / 10 + 1
+      max = usernames.map(&:length).max
+      spots.each do |spot|
+        response += sprintf("%-#{n}d. %-#{max}s : %s", spot.number, spot.username, spot.status) + "\n"
       end
       response += "\n"
       response += "You can type 'parky map' to see who parks in each spot\n"
@@ -154,14 +175,23 @@ EOM
     def claim(message)
       args = message.command_args.split ' '
       name = args[0].downcase if args.length > 0
-      c = claimed = Slacky::User.find name
-      pc = previous_claimer = claimed && claimed.find_claimer
+      if name =~ /^\d+$/
+        by_number = true
+        s = spot = Spot.find name.to_i
+        c = claimed = spot && spot.owner
+      else
+        by_name = true
+        c = claimed = Slacky::User.find name
+        s = spot = claimed && Spot.find(claimed)
+      end
+      pc = previous_claimer = spot && spot.claimer
       now = args[1] if args.length > 1
       force = ( now == 'now!' )
 
-      no_person       = "You need to specify who's spot you want to claim.  ex: `parky claim @jesus` (if she had a spot)"
+      no_person       = "You need to specify who's spot you want to claim.  ex: `parky claim @jesus` or `parky claim 2`"
       not_a_person    = "Sorry charlie.  #{args} is not a person, let alone a _parking_ person.  Try again.  :thumbsdown:"
       no_parking_spot = "No deal.  #{c && c.username} doesn't have a parking spot, so you can't claim it.  That's just _basic_ metaphysics. :face_with_rolling_eyes:"
+      bad_spot_num    = "There is no spot #{name}!  Go build a new parking lot and then you can have spot #{name}. :pick:"
       thats_you       = "Stop it!  My mama didn't raise no dummies.  That's you.  :middle_finger:"
       claimed_by_you  = "Ummm... you already have #{c && c.username}'s spot claimed.  So I guess you can still have it.  :happy_dooby:"
       too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
@@ -170,21 +200,21 @@ EOM
                         "```parky claim #{c && c.username} now!```"
 
       return ( message.reply no_person       ) if args.length == 0
-      return ( message.reply thats_you       ) if message.user.slack_id == claimed.slack_id
-      return ( message.reply not_a_person    ) unless claimed
-      return ( message.reply no_parking_spot ) unless @config.usernames.include? claimed.username
+      return ( message.reply thats_you       ) if claimed && message.user.slack_id == claimed.slack_id
+      return ( message.reply not_a_person    ) if by_name && !claimed
+      return ( message.reply no_parking_spot ) if by_name && !spot
+      return ( message.reply bad_spot_num    ) if by_number && !spot
       return ( message.reply claimed_by_you  ) if previous_claimer && previous_claimer.slack_id == message.user.slack_id
       return ( message.reply too_slow        ) if previous_claimer
-      return ( message.reply not_available   ) if claimed.parking_spot_status == 'in use'
-      return ( message.reply maybe_available ) if claimed.parking_spot_status == 'unknown' && ! force
+      return ( message.reply not_available   ) if spot.status == 'in use'
+      return ( message.reply maybe_available ) if spot.status == 'unknown' && ! force
 
-      message.user.claim claimed
-      message.user.save
-      message.reply "Boo ya!  You claimed #{claimed.username}'s spot for today.  :trophy:"
+      message.user.claim spot
+      message.reply "Boo ya!  You claimed #{spot.label} for today.  :trophy:"
     end
 
     def unclaim(message)
-      message.user.unclaim
+      message.user.unclaim_spot
       message.user.save
       message.reply "Ok, you no parky today.  kthxbai  :stuck_out_tongue_winking_eye:"
     end
