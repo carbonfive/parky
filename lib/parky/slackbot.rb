@@ -3,15 +3,14 @@ require 'tzinfo'
 module Parky
   class Slackbot
     def initialize(bot)
-      Slacky::User.decorator = User
-
       @config = bot.config
       @config.extend Config
 
+      Slacky::User.decorator = User
+      User.holidays = get_holidays
+
       Spot.config = @config
       Spot.initialize_table
-
-      @holidays = get_holidays
 
       @bot = bot
       @bot.on_command 'help',    &(method :help)
@@ -30,7 +29,7 @@ module Parky
       end
 
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
-      @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:', ':racing_car' ]
+      @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:', ':racing_car:' ]
       @yes = [
         "Got it.  I'll make sure no one parks on top of your car.",
         "Great!  I'll tell Al Gore you don't care about global warming.",
@@ -68,11 +67,6 @@ module Parky
       end
       puts " done! (found #{holidays.length})"
       holidays
-    end
-
-    def is_holiday?(time)
-      day = time.strftime '%F'
-      @holidays.any? { |h| h['start_date'] <= day && h['end_date'] >= day }
     end
 
     def users
@@ -115,7 +109,7 @@ module Parky
       now = Time.now
       should_ask = ! user.has_been_asked_on?(now)
       should_ask &&= user.is_work_hours?(now) if @config.work_hours_only?
-      should_ask &&= !is_holiday?(now) if @config.work_hours_only?
+      should_ask &&= ! user.is_holiday?(now) if @config.work_hours_only?
       if should_ask
         im = @bot.web_client.im_open user: user.slack_id
         car = @car_emojis.sample

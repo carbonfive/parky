@@ -2,6 +2,14 @@ require 'tzinfo'
 
 module Parky
   module User
+    def self.holidays=(holidays)
+      @@holidays = holidays
+    end
+
+    def holidays
+      @@holidays
+    end
+
     def last_ask
       data['last_ask']
     end
@@ -40,9 +48,13 @@ module Parky
       @tz ||= TZInfo::Timezone.get timezone
     end
 
+    def to_tz(time)
+      tz.utc_to_local time.getgm
+    end
+
     def has_been_asked_on?(time)
       return false unless last_ask
-      tz_time = tz.utc_to_local time.getgm
+      tz_time = to_tz time
       tz_last_ask = tz.utc_to_local Time.at(last_ask)
       tz_time.strftime('%F') == tz_last_ask.strftime('%F')
     end
@@ -52,9 +64,15 @@ module Parky
     end
 
     def is_work_hours?(time)
-      tz_time = tz.utc_to_local time.getgm
+      tz_time = to_tz time
       return false if tz_time.wday == 0 || tz_time.wday == 6  # weekends
-      tz_time.hour >= 8 && tz_time.hour <= 17
+      tz_time.hour >= 8 && tz_time.hour <= 15
+    end
+
+    def is_holiday?(time)
+      tz_time = to_tz time
+      day = tz_time.strftime '%F'
+      holidays.any? { |h| h['start_date'] <= day && h['end_date'] >= day }
     end
   end
 end
