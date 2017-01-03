@@ -32,7 +32,7 @@ module Parky
     end
 
     def unclaim_spot
-      spots = Spot.find_claimed_by self
+      spots = Spot.find_claimed_by self, false
       spots.each do |spot|
         spot.unclaim
         spot.save

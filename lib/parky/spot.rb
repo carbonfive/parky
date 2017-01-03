@@ -32,10 +32,10 @@ create table if not exists spots (
 SQL
     end
 
-    def self.find_claimed_by(user)
+    def self.find_claimed_by(user, today_only = true)
       result = db.exec_params "select * from spots where claimer_id = $1", [ user.slack_id ]
       return nil if result.ntuples == 0
-      hydrate(result).select { |s| s.was_claimed_on? Time.now }
+      hydrate(result).select { |s| today_only && s.was_claimed_on?(Time.now) }
     end
 
     def self.find(query)
@@ -109,7 +109,7 @@ SQL
     end
 
     def status
-      return "claimed by #{claimer.username}" if @claimed_at
+      return "claimed by #{claimer.username}" if was_claimed_on?(Time.now)
       return "available" unless @owner_id
       owner.tap do |owner|
         return "unknown" unless owner.has_been_asked_on?(Time.now) && owner.last_answer
