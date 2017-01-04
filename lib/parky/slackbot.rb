@@ -46,7 +46,7 @@ module Parky
       @config.log "Parky recognizes parkers: #{users.map(&:username)}"
       puts        "Parky recognizes parkers: #{users.map(&:username)}"
 
-      @spots = load_spots
+      spots
 
       ask_all
     end
@@ -76,17 +76,14 @@ module Parky
     end
 
     def spots
-      @spots
-    end
-
-    def load_spots
       spotnames.map do |spotname|
         number, name = spotname.split '-'
         number = number.to_i
         owner = Slacky::User.find name
+        owner_slack_id = owner ? owner.slack_id : nil
         spot = Spot.find number
-        if !spot || !spot.owner_id || spot.owner_id != owner.slack_id
-          spot = Spot.new number: number, owner_id: ( owner ? owner.slack_id : nil )
+        if !spot || ( spot.owner_id != owner_slack_id )
+          spot = Spot.new number: number, owner_id: owner_slack_id
           spot.save
         end
         if !spot.was_claimed_on?(Time.now)
@@ -246,7 +243,6 @@ EOM
 
     def unclaim(message)
       message.user.unclaim_spot
-      message.user.save
       message.reply "Ok, you no parky today.  kthxbai  :stuck_out_tongue_winking_eye:"
     end
 

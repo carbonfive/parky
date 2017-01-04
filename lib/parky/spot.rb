@@ -35,7 +35,7 @@ SQL
     def self.find_claimed_by(user, today_only = true)
       result = db.exec_params "select * from spots where claimer_id = $1", [ user.slack_id ]
       return nil if result.ntuples == 0
-      hydrate(result).select { |s| today_only && s.was_claimed_on?(Time.now) }
+      hydrate(result).select { |s| !today_only || s.was_claimed_on?(Time.now) }
     end
 
     def self.find(query)
