@@ -109,11 +109,11 @@ SQL
     end
 
     def status
-      return "claimed by #{claimer.username}" if was_claimed_on?(Time.now)
-      return "available" unless @owner_id
+      return "🚫  claimed by #{claimer.username}" if was_claimed_on?(Time.now)
+      return "✅  available" unless @owner_id
       owner.tap do |owner|
-        return "unknown" unless owner.has_been_asked_on?(Time.now) && owner.last_answer
-        return ( owner.last_answer.downcase == 'yes' ? 'in use' : 'available' )
+        return "❓  unknown" unless owner.has_been_asked_on?(Time.now) && owner.last_answer
+        return ( owner.last_answer.downcase == 'yes' ? '🚫  in use' : '✅  available' )
       end
     end
 
