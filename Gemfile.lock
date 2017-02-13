@@ -3,7 +3,7 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.2.6)
+      slacky (>= 0.2.7)
       tzinfo
 
 GEM
@@ -15,22 +15,22 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    dotenv (2.1.1)
+    dotenv (2.2.0)
     em-cron (0.2.0)
       eventmachine
       parse-cron (~> 0.1)
-    eventmachine (1.2.1)
+    eventmachine (1.2.2)
     factory_girl (4.7.0)
       activesupport (>= 3.0.0)
-    faraday (0.10.1)
+    faraday (0.11.0)
       multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.10.1)
+    faraday_middleware (0.11.0.1)
       faraday (>= 0.7.4, < 1.0)
-    faye-websocket (0.10.5)
+    faye-websocket (0.10.6)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    gli (2.14.0)
-    hashie (3.4.6)
+    gli (2.15.0)
+    hashie (3.5.3)
     i18n (0.7.0)
     json (1.8.3)
     minitest (5.9.0)
@@ -38,15 +38,15 @@ GEM
     parse-cron (0.1.4)
     pg (0.19.0)
     rake (11.1.2)
-    slack-ruby-client (0.7.7)
+    slack-ruby-client (0.7.9)
       activesupport
-      faraday
+      faraday (>= 0.9)
       faraday_middleware
       gli
       hashie
       json
       websocket-driver
-    slacky (0.2.6)
+    slacky (0.2.7)
       dotenv
       em-cron
       eventmachine
@@ -60,7 +60,7 @@ GEM
       thread_safe (~> 0.1)
     tzinfo-data (1.2016.10)
       tzinfo (>= 1.0.0)
-    websocket-driver (0.6.4)
+    websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
 
