@@ -215,12 +215,12 @@ EOM
       pc = previous_claimer = spot && spot.claimer
       now = args[1] if args.length > 1
       force = ( now == 'now!' )
+      spot_mine = spot.owner && message.user.slack_id == spot.owner.slack_id
 
       no_person       = "You need to specify who's spot you want to claim.  ex: `parky claim @jesus` or `parky claim 2`"
       not_a_person    = "Sorry charlie.  #{args} is not a person, let alone a _parking_ person.  Try again.  :thumbsdown:"
       no_parking_spot = "No deal.  #{c && c.username} doesn't have a parking spot, so you can't claim it.  That's just _basic_ metaphysics. :face_with_rolling_eyes:"
       bad_spot_num    = "There is no spot #{name}!  Go build a new parking lot and then you can have spot #{name}. :pick:"
-      thats_you       = "Stop it!  My mama didn't raise no dummies.  That's you.  :middle_finger:"
       claimed_by_you  = "Ummm... you already have #{c && c.username}'s spot claimed.  So I guess you can still have it.  :happy_dooby:"
       too_slow        = "Too slow!  Looks like #{pc && pc.username} already claimed #{c && c.username}'s spot.  :disappointed:"
       not_available   = "Bzzzz!  #{c && c.username} is using their spot today.  Swiper no swiping!  :no_entry_sign:"
@@ -228,17 +228,18 @@ EOM
                         "```parky claim #{c && c.username} now!```"
 
       return ( message.reply no_person       ) if args.length == 0
-      return ( message.reply thats_you       ) if claimed && message.user.slack_id == claimed.slack_id
       return ( message.reply not_a_person    ) if by_name && !claimed
       return ( message.reply no_parking_spot ) if by_name && !spot
       return ( message.reply bad_spot_num    ) if by_number && !spot
       return ( message.reply claimed_by_you  ) if previous_claimer && previous_claimer.slack_id == message.user.slack_id
       return ( message.reply too_slow        ) if previous_claimer
-      return ( message.reply not_available   ) if spot.status == 'in use'
-      return ( message.reply maybe_available ) if spot.status == 'unknown' && ! force
+      return ( message.reply not_available   ) if spot.available? == 'no'
+      return ( message.reply maybe_available ) if spot.available? == 'maybe' && ! force && ! spot_mine
 
       message.user.claim spot
-      message.reply "Boo ya!  You claimed #{spot.label} for today.  :trophy:"
+
+      label = spot_mine ? 'your own spot' : spot.label
+      message.reply "Boo ya!  You claimed #{label} for today.  :trophy:"
     end
 
     def unclaim(message)

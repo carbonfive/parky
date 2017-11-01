@@ -117,6 +117,13 @@ SQL
       end
     end
 
+    def available?
+      s = status
+      return 'yes' if s =~ /available/
+      return 'maybe' if s =~ /unknown/
+      'no'
+    end
+
     def save
       Spot.db.exec_params "delete from spots where number = $1", [ @number ]
       Spot.db.exec_params "insert into spots (number, owner_id, claimed_at, claimer_id) values ($1, $2, $3, $4)",
