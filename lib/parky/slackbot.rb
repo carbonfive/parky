@@ -23,11 +23,6 @@ module Parky
       @bot.on_im nil, &(method :answer)
       @bot.at '* * * * *', &(method :ask_all)
 
-      @bot.on :presence_change do |data|
-        next unless ( user = Slacky::User.find data.user )
-        ask user
-      end
-
       @tz_la = TZInfo::Timezone.get 'America/Los_Angeles'
       @car_emojis = [ ':car:', ':blue_car:', ':oncoming_automobile:', ':racing_car:' ]
       @yes = [
@@ -104,13 +99,12 @@ module Parky
 
     def ask_all
       users.each do |user|
-        ask user if user.presence == 'active'
+        ask user
       end
     end
 
     def ask(user)
       return unless usernames.include? user.username
-      return unless user.presence == 'active'
       return unless user.valid?
 
       now = Time.now
