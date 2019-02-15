@@ -9,36 +9,36 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
-    activesupport (4.2.6)
-      i18n (~> 0.7)
-      json (~> 1.7, >= 1.7.7)
+    activesupport (5.2.2)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    dotenv (2.2.1)
+    concurrent-ruby (1.1.4)
+    dotenv (2.6.0)
     em-cron (0.2.0)
       eventmachine
       parse-cron (~> 0.1)
-    eventmachine (1.2.5)
-    factory_girl (4.7.0)
+    eventmachine (1.2.7)
+    factory_girl (4.9.0)
       activesupport (>= 3.0.0)
-    faraday (0.14.0)
+    faraday (0.15.4)
       multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.12.2)
+    faraday_middleware (0.13.1)
       faraday (>= 0.7.4, < 1.0)
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    gli (2.17.1)
-    hashie (3.5.7)
-    i18n (0.7.0)
-    json (1.8.3)
-    minitest (5.9.0)
+    gli (2.18.0)
+    hashie (3.6.0)
+    i18n (1.5.3)
+      concurrent-ruby (~> 1.0)
+    minitest (5.11.3)
     multipart-post (2.0.0)
     parse-cron (0.1.4)
-    pg (1.0.0)
-    rake (11.1.2)
-    slack-ruby-client (0.11.1)
+    pg (1.1.4)
+    rake (12.3.2)
+    slack-ruby-client (0.13.1)
       activesupport
       faraday (>= 0.9)
       faraday_middleware
@@ -54,10 +54,10 @@ GEM
       slack-ruby-client (>= 0.6)
       tzinfo
       tzinfo-data
-    thread_safe (0.3.5)
-    tzinfo (1.2.2)
+    thread_safe (0.3.6)
+    tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2018.4)
+    tzinfo-data (1.2018.9)
       tzinfo (>= 1.0.0)
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
@@ -73,4 +73,4 @@ DEPENDENCIES
   rake
 
 BUNDLED WITH
-   1.13.7
+   2.0.1
