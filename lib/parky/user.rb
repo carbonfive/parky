@@ -66,7 +66,7 @@ module Parky
     def is_work_hours?(time)
       tz_time = to_tz time
       return false if tz_time.wday == 0 || tz_time.wday == 6  # weekends
-      tz_time.hour >= 8 && tz_time.hour <= 15
+      tz_time.hour >= 7 && tz_time.hour <= 15
     end
 
     def is_holiday?(time)
