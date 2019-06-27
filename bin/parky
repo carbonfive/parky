@@ -6,7 +6,7 @@ require 'slacky'
 require 'parky'
 
 config = { :write => false }
-operations = %w(run start stop restart status)
+operations = %w(run)
 
 option_parser = OptionParser.new do |opts|
   opts.banner = "Parky #{Parky::VERSION}, Carbon Five LA parking bot\nUsage: #{__FILE__} [command] [options]"
@@ -20,10 +20,6 @@ option_parser = OptionParser.new do |opts|
 Supported commands:
 
  run                                 Run Parky in the foreground (kill with ctrl-c)
- start                               Start Parky so that it can check you in
- stop                                Stop Parky
- restart                             Stop and start Parky
- status                              Show Parky's status (and PID if running)
 EOS
 end
 option_parser.parse!
@@ -35,9 +31,8 @@ if operations.include?(op)
     exit cli.send(op.to_sym, ARGV) ? 0 : 1
   rescue SystemExit => e
     exit e.status
-  rescue ArgumentError => e
-    puts e.message
-    exit 2
+  rescue SignalException => e
+    exit 128 + e.signo
   rescue Exception => e
     puts "Uh oh, I didn't expect this:"
     puts e.message

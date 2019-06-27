@@ -6,8 +6,8 @@ ssh="ssh root@$dest"
 
 rake build
 scp pkg/parky-$version.gem root@$dest:
-$ssh "which parky && parky stop"
-$ssh "gem list | grep parky && gem uninstall parky"
-$ssh "gem install --no-ri --no-rdoc ./parky-$version.gem"
-$ssh "parky start"
+$ssh "sudo systemctl stop parky"
+$ssh "sudo gem list | grep parky && gem uninstall parky"
+$ssh "sudo gem install --no-ri --no-rdoc ./parky-$version.gem"
+$ssh "sudo systemctl start parky"
 $ssh "rm -f ./parky-$version.gem"

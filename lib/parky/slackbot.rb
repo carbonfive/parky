@@ -38,8 +38,7 @@ module Parky
         "Oh, did your drivers license finally get revoked from all those DUIs?"
       ]
 
-      @config.log "Parky recognizes parkers: #{users.map(&:username)}"
-      puts        "Parky recognizes parkers: #{users.map(&:username)}"
+      puts "Parky recognizes parkers: #{users.map(&:username)}"
 
       spots
 
@@ -57,8 +56,8 @@ module Parky
         when 200, 201
           JSON.parse response.body
         else
-          @config.log "Error retreiving holidays from timesheet"
-          @config.log "#{response.code} - #{response.message}"
+          puts "Error retreiving holidays from timesheet"
+          puts "#{response.code} - #{response.message}"
           []
         end
       end
