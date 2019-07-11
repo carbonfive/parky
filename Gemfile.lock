@@ -3,38 +3,42 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.3.2)
+      slacky (>= 0.3.3)
       tzinfo
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (5.2.2)
+    activesupport (5.2.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    concurrent-ruby (1.1.4)
+    async (1.20.0)
+      console (~> 1.0)
+      nio4r (~> 2.3)
+      timers (~> 4.1)
+    async-io (1.23.3)
+      async (~> 1.14)
+    async-websocket (0.8.0)
+      async-io
+      websocket-driver (~> 0.7.0)
+    concurrent-ruby (1.1.5)
+    console (1.4.0)
     dotenv (2.7.4)
-    em-cron (0.2.0)
-      eventmachine
-      parse-cron (~> 0.1)
-    eventmachine (1.2.7)
     factory_girl (4.9.0)
       activesupport (>= 3.0.0)
     faraday (0.15.4)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.13.1)
       faraday (>= 0.7.4, < 1.0)
-    faye-websocket (0.10.9)
-      eventmachine (>= 0.12.0)
-      websocket-driver (>= 0.5.1)
     gli (2.18.1)
     hashie (3.6.0)
-    i18n (1.5.3)
+    i18n (1.6.0)
       concurrent-ruby (~> 1.0)
     minitest (5.11.3)
     multipart-post (2.1.1)
+    nio4r (2.4.0)
     parse-cron (0.1.4)
     pg (1.1.4)
     rake (12.3.2)
@@ -45,19 +49,19 @@ GEM
       gli
       hashie
       websocket-driver
-    slacky (0.3.2)
+    slacky (0.3.3)
+      async-websocket (~> 0.8.0)
       dotenv
-      em-cron
-      eventmachine
-      faye-websocket
+      parse-cron
       pg
-      slack-ruby-client (>= 0.14)
+      slack-ruby-client
       tzinfo
       tzinfo-data
     thread_safe (0.3.6)
+    timers (4.3.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2019.1)
+    tzinfo-data (1.2019.2)
       tzinfo (>= 1.0.0)
     websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
