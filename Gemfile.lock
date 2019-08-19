@@ -3,7 +3,7 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.3.3)
+      slacky (>= 0.3.4)
       tzinfo
 
 GEM
@@ -14,25 +14,25 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    async (1.20.0)
+    async (1.20.1)
       console (~> 1.0)
       nio4r (~> 2.3)
       timers (~> 4.1)
-    async-io (1.23.3)
+    async-io (1.25.0)
       async (~> 1.14)
     async-websocket (0.8.0)
       async-io
       websocket-driver (~> 0.7.0)
     concurrent-ruby (1.1.5)
     console (1.4.0)
-    dotenv (2.7.4)
+    dotenv (2.7.5)
     factory_girl (4.9.0)
       activesupport (>= 3.0.0)
     faraday (0.15.4)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.13.1)
       faraday (>= 0.7.4, < 1.0)
-    gli (2.18.1)
+    gli (2.18.2)
     hashie (3.6.0)
     i18n (1.6.0)
       concurrent-ruby (~> 1.0)
@@ -42,14 +42,14 @@ GEM
     parse-cron (0.1.4)
     pg (1.1.4)
     rake (12.3.2)
-    slack-ruby-client (0.14.2)
+    slack-ruby-client (0.14.4)
       activesupport
       faraday (>= 0.9)
       faraday_middleware
       gli
       hashie
       websocket-driver
-    slacky (0.3.3)
+    slacky (0.3.4)
       async-websocket (~> 0.8.0)
       dotenv
       parse-cron
