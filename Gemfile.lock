@@ -3,7 +3,7 @@ PATH
   specs:
     parky (1.0)
       multipart-post
-      slacky (>= 0.3.4)
+      slacky (>= 0.3.5)
       tzinfo
 
 GEM
@@ -49,12 +49,12 @@ GEM
       gli
       hashie
       websocket-driver
-    slacky (0.3.4)
+    slacky (0.3.5)
       async-websocket (~> 0.8.0)
       dotenv
       parse-cron
       pg
-      slack-ruby-client
+      slack-ruby-client (>= 0.14.4)
       tzinfo
       tzinfo-data
     thread_safe (0.3.6)
