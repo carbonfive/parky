@@ -1,54 +1,6 @@
 PATH
-  remote: .
+  remote: /Users/mike/Projects/slacky
   specs:
-    parky (1.0)
-      multipart-post
-      slacky (>= 0.3.5)
-      tzinfo
-
-GEM
-  remote: https://rubygems.org/
-  specs:
-    activesupport (5.2.3)
-      concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 0.7, < 2)
-      minitest (~> 5.1)
-      tzinfo (~> 1.1)
-    async (1.20.1)
-      console (~> 1.0)
-      nio4r (~> 2.3)
-      timers (~> 4.1)
-    async-io (1.25.0)
-      async (~> 1.14)
-    async-websocket (0.8.0)
-      async-io
-      websocket-driver (~> 0.7.0)
-    concurrent-ruby (1.1.5)
-    console (1.4.0)
-    dotenv (2.7.5)
-    factory_girl (4.9.0)
-      activesupport (>= 3.0.0)
-    faraday (0.15.4)
-      multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.13.1)
-      faraday (>= 0.7.4, < 1.0)
-    gli (2.18.2)
-    hashie (3.6.0)
-    i18n (1.6.0)
-      concurrent-ruby (~> 1.0)
-    minitest (5.11.3)
-    multipart-post (2.1.1)
-    nio4r (2.4.0)
-    parse-cron (0.1.4)
-    pg (1.1.4)
-    rake (12.3.2)
-    slack-ruby-client (0.14.4)
-      activesupport
-      faraday (>= 0.9)
-      faraday_middleware
-      gli
-      hashie
-      websocket-driver
     slacky (0.3.5)
       async-websocket (~> 0.8.0)
       dotenv
@@ -57,24 +9,64 @@ GEM
       slack-ruby-client (>= 0.14.4)
       tzinfo
       tzinfo-data
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activesupport (6.0.1)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+      zeitwerk (~> 2.2)
+    async (1.23.0)
+      console (~> 1.0)
+      nio4r (~> 2.3)
+      timers (~> 4.1)
+    async-io (1.27.0)
+      async (~> 1.14)
+    async-websocket (0.8.0)
+      async-io
+      websocket-driver (~> 0.7.0)
+    concurrent-ruby (1.1.5)
+    console (1.5.0)
+    dotenv (2.7.5)
+    faraday (0.17.0)
+      multipart-post (>= 1.2, < 3)
+    faraday_middleware (0.13.1)
+      faraday (>= 0.7.4, < 1.0)
+    gli (2.19.0)
+    hashie (4.0.0)
+    i18n (1.7.0)
+      concurrent-ruby (~> 1.0)
+    minitest (5.13.0)
+    multipart-post (2.1.1)
+    nio4r (2.5.2)
+    parse-cron (0.1.4)
+    pg (1.1.4)
+    slack-ruby-client (0.14.4)
+      activesupport
+      faraday (>= 0.9)
+      faraday_middleware
+      gli
+      hashie
+      websocket-driver
     thread_safe (0.3.6)
     timers (4.3.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2019.2)
+    tzinfo-data (1.2019.3)
       tzinfo (>= 1.0.0)
     websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.4)
+    zeitwerk (2.2.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  factory_girl
-  minitest
-  parky!
-  rake
+  slacky!
 
 BUNDLED WITH
    2.0.1

@@ -49,13 +49,13 @@ module Parky
     end
 
     def to_tz(time)
-      tz.utc_to_local time.getgm
+      tz.utc_to_local time.utc
     end
 
     def has_been_asked_on?(time)
       return false unless last_ask
       tz_time = to_tz time
-      tz_last_ask = tz.utc_to_local Time.at(last_ask)
+      tz_last_ask = to_tz Time.at(last_ask)
       tz_time.strftime('%F') == tz_last_ask.strftime('%F')
     end
 
