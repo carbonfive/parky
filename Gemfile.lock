@@ -1,14 +1,10 @@
 PATH
-  remote: /Users/mike/Projects/slacky
+  remote: .
   specs:
-    slacky (0.3.5)
-      async-websocket (~> 0.8.0)
-      dotenv
-      parse-cron
-      pg
-      slack-ruby-client (>= 0.14.4)
+    parky (1.0)
+      multipart-post
+      slacky (>= 0.3.5)
       tzinfo
-      tzinfo-data
 
 GEM
   remote: https://rubygems.org/
@@ -29,8 +25,10 @@ GEM
       async-io
       websocket-driver (~> 0.7.0)
     concurrent-ruby (1.1.5)
-    console (1.5.0)
+    console (1.6.0)
     dotenv (2.7.5)
+    factory_girl (4.9.0)
+      activesupport (>= 3.0.0)
     faraday (0.17.0)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.13.1)
@@ -44,6 +42,7 @@ GEM
     nio4r (2.5.2)
     parse-cron (0.1.4)
     pg (1.1.4)
+    rake (13.0.1)
     slack-ruby-client (0.14.4)
       activesupport
       faraday (>= 0.9)
@@ -51,6 +50,14 @@ GEM
       gli
       hashie
       websocket-driver
+    slacky (0.3.5)
+      async-websocket (~> 0.8.0)
+      dotenv
+      parse-cron
+      pg
+      slack-ruby-client (>= 0.14.4)
+      tzinfo
+      tzinfo-data
     thread_safe (0.3.6)
     timers (4.3.0)
     tzinfo (1.2.5)
@@ -66,7 +73,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  slacky!
+  factory_girl
+  minitest
+  parky!
+  rake
 
 BUNDLED WITH
    2.0.1

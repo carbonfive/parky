@@ -89,7 +89,7 @@ SQL
 
     def claimed_by(user)
       @claimer_id = user.slack_id
-      @claimed_at = Time.now
+      @claimed_at = Time.now.utc
     end
 
     def unclaim
@@ -103,8 +103,8 @@ SQL
 
     def was_claimed_on?(time)
       return false unless @claimed_at
-      tz_time = tz.utc_to_local time.getgm
-      tz_claimed = tz.utc_to_local DateTime.parse(@claimed_at)
+      tz_time = tz.utc_to_local time.utc
+      tz_claimed = tz.utc_to_local DateTime.parse(@claimed_at).utc
       tz_time.strftime('%F') == tz_claimed.strftime('%F')
     end
 
