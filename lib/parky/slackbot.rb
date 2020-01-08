@@ -163,7 +163,7 @@ EOM
     end
 
     def whatsup(message)
-      la_now = @tz_la.utc_to_local Time.now
+      la_now = @tz_la.utc_to_local Time.now.utc
       response = '```'
       response += "Parking spot statuses for #{la_now.strftime('%A %b %-d, %Y')}\n\n"
       n = spots.length / 10 + 1
