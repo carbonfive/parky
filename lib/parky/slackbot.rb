@@ -247,6 +247,7 @@ EOM
 
       if message.yes?
         message.reply( rand(10) == 0 ? @yes.sample : "Ok thanks!" )
+        message.reply( "Remember... you can change your mind at any time by just typing \"no\".  :boom:" )
         message.user.last_answer = 'yes'
         message.user.save
         if claimer
@@ -255,6 +256,7 @@ EOM
         end
       elsif message.no?
         message.reply( rand(10) == 0 ? @no.sample : "Got it.  I'll mark it as available" )
+        message.reply( "Remember... you can change your mind at any time by just typing \"yes\".  :sparkles:" )
         message.user.last_answer = 'no'
         message.user.save
         if claimer
