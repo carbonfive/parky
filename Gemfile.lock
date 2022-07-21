@@ -9,44 +9,51 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (6.0.1)
+    activesupport (7.0.3.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 0.7, < 2)
-      minitest (~> 5.1)
-      tzinfo (~> 1.1)
-      zeitwerk (~> 2.2)
-    async (1.23.0)
-      console (~> 1.0)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+    async (1.30.3)
+      console (~> 1.10)
       nio4r (~> 2.3)
       timers (~> 4.1)
-    async-io (1.27.0)
-      async (~> 1.14)
+    async-io (1.33.0)
+      async
     async-websocket (0.8.0)
       async-io
       websocket-driver (~> 0.7.0)
-    concurrent-ruby (1.1.5)
-    console (1.6.0)
-    dotenv (2.7.5)
+    concurrent-ruby (1.1.10)
+    console (1.15.3)
+      fiber-local
+    dotenv (2.7.6)
     factory_girl (4.9.0)
       activesupport (>= 3.0.0)
-    faraday (0.17.0)
-      multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.13.1)
-      faraday (>= 0.7.4, < 1.0)
-    gli (2.19.0)
-    hashie (4.0.0)
-    i18n (1.7.0)
+    faraday (2.3.0)
+      faraday-net_http (~> 2.0)
+      ruby2_keywords (>= 0.0.4)
+    faraday-mashify (0.1.0)
+      faraday (~> 2.0)
+      hashie
+    faraday-multipart (1.0.4)
+      multipart-post (~> 2)
+    faraday-net_http (2.0.3)
+    fiber-local (1.0.0)
+    gli (2.21.0)
+    hashie (5.0.0)
+    i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     minitest (5.13.0)
-    multipart-post (2.1.1)
-    nio4r (2.5.2)
+    multipart-post (2.2.3)
+    nio4r (2.5.8)
     parse-cron (0.1.4)
-    pg (1.1.4)
+    pg (1.4.1)
     rake (13.0.1)
-    slack-ruby-client (0.14.4)
-      activesupport
-      faraday (>= 0.9)
-      faraday_middleware
+    ruby2_keywords (0.0.5)
+    slack-ruby-client (1.1.0)
+      faraday (>= 2.0)
+      faraday-mashify
+      faraday-multipart
       gli
       hashie
       websocket-driver
@@ -58,16 +65,14 @@ GEM
       slack-ruby-client (>= 0.14.4)
       tzinfo
       tzinfo-data
-    thread_safe (0.3.6)
-    timers (4.3.0)
-    tzinfo (1.2.5)
-      thread_safe (~> 0.1)
-    tzinfo-data (1.2019.3)
+    timers (4.3.3)
+    tzinfo (2.0.5)
+      concurrent-ruby (~> 1.0)
+    tzinfo-data (1.2022.1)
       tzinfo (>= 1.0.0)
-    websocket-driver (0.7.1)
+    websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.4)
-    zeitwerk (2.2.1)
+    websocket-extensions (0.1.5)
 
 PLATFORMS
   ruby
